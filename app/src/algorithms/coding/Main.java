@@ -8,7 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
-import static algorithms.Noise.applyNoise;
+import static algorithms.helpers.NoiseHelper.applyNoise;
 
 public class Main {
     private static final double BIT_FLIP_PROB = 0.005;

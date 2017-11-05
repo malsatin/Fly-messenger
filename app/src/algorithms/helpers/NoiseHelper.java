@@ -1,11 +1,11 @@
-package algorithms;
+package algorithms.helpers;
 
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * This class contains one static method {@code applyNoise} for making some noise for a bit (byte) sequence.
  */
-public class Noise {
+public class NoiseHelper {
     /**
      * Flip some bits of the specified byte sequence with given probability.
      *
