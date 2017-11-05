@@ -7,7 +7,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.concurrent.ThreadLocalRandom;
+
+import static algorithms.Noise.applyNoise;
 
 public class Main {
     private static final double BIT_FLIP_PROB = 0.005;
@@ -27,20 +28,6 @@ public class Main {
 //                System.out.println(new String(alg.decodeByteString(code)) + '\n');
             } catch (DecodingException e) {
                 e.printStackTrace();
-            }
-        }
-    }
-
-    private static void applyNoise(byte[] in, double flipProb) {
-        if (in.length < 1) {
-            return;
-        }
-        int i, j;
-        for (i = 0; i < in.length; ++i) {
-            for (j = 0; j < 8; ++j) {
-                if (ThreadLocalRandom.current().nextDouble(0, 1) < flipProb) {
-                    in[i] ^= 1 << j;
-                }
             }
         }
     }
