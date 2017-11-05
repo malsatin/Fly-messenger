@@ -29,21 +29,10 @@ public class ByteHelper {
     }
 
     /**
-     * TODO
+     * Get the string out of the specified sequence of bytes ({@code UTF-8}).
      *
-     * @param path
-     * @return
-     * @throws IOException
-     */
-    public static byte[] getBytesFromFile(String path) throws IOException {
-        return Files.readAllBytes(Paths.get(path));
-    }
-
-    /**
-     * TODO
-     *
-     * @param sequence
-     * @return
+     * @param sequence Sequence of bytes to convert to string
+     * @return String constructed out of this sequence of bytes
      */
     public static String getStringFromBytes(byte[] sequence) {
         try {
@@ -54,6 +43,24 @@ public class ByteHelper {
         }
     }
 
+    /**
+     * GEt the sequence of bytes out of the specified file.
+     *
+     * @param path Path to the source file
+     * @return Sequence of bytes out of the specified file
+     * @throws IOException File not found (wrong path)
+     */
+    public static byte[] readBytesFromFile(String path) throws IOException {
+        return Files.readAllBytes(Paths.get(path));
+    }
+
+    /**
+     * Write the sequence of bytes to the file specified by the path.
+     *
+     * @param sequence Sequence of bytes to write into file
+     * @param path     Path to the destination file
+     * @throws FileNotFoundException Path is wrong or some other error has occurred
+     */
     public static void writeBytesToFile(byte[] sequence, String path) throws FileNotFoundException {
         PrintWriter pw = new PrintWriter(path);
         int bufferSize = 1024;
@@ -64,5 +71,6 @@ public class ByteHelper {
             }
             pw.flush();
         }
+        pw.close();
     }
 }
