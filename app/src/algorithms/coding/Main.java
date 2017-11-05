@@ -20,7 +20,7 @@ public class Main {
             try {
                 ByteHelper.writeBytesToFile(alg.decodeByteString(code),
                         alg.getClass().getSimpleName() + "_" + IN_FILE_NAME);
-//                System.out.println(getStringFromBytes(alg.decodeByteString(code)) + '\n');
+//                System.out.println(ByteHelper.getStringFromBytes(alg.decodeByteString(code)) + '\n');
             } catch (DecodingException e) {
                 e.printStackTrace();
             }
