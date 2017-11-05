@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">P7</string>
+    <string name="menu">Menu</string>
+    <string name="search">Search</string>
+    <string name="image">Image</string>
+    <string name="audio">Audio</string>
+    <string name="yNickname">Your nickname</string>
+    <string name="cNickname">Companion nickname</string>
+    <string name="hintCoding">Coding/decoding algorithm</string>
+    <string name="hintCompression">Compression algorithm</string>
+    <string name="clear">Clear history</string>
+    <string name="startChatting">Start chatting</string>
+    <string name="fullInfo">Show all sending info</string>
+    <string name="example">Show all sendShow all sending infoShow all sending infoShow all sending infoShow all sending infoShow all sending infoShow all sending infoShow all sending infoing info</string>
+</resources>

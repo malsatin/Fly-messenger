@@ -1,0 +1,4 @@
+<resources>
+    <dimen name="fab_margin">8dp</dimen>
+    <dimen name="bigText">12sp</dimen>
+</resources>
