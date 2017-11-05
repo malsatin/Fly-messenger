@@ -2,10 +2,10 @@ package algorithms.helpers;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
 /**
  * This class represents some operations with files as sequences of bytes.
@@ -58,21 +58,13 @@ public class ByteHelper {
 
     /**
      * Write the sequence of bytes to the file specified by the path.
+     * New file will be created; already existing file will be truncated to the length 0.
      *
      * @param sequence Sequence of bytes to write into file
      * @param path     Path to the destination file
      * @throws FileNotFoundException Path is wrong or some other error has occurred
      */
-    public static void writeBytesToFile(byte[] sequence, String path) throws FileNotFoundException {
-        PrintWriter pw = new PrintWriter(path);
-        int bufferSize = 1024;
-        int i, j;
-        for (i = 0; i < sequence.length; i += bufferSize) {
-            for (j = 0; j < bufferSize; ++j) {
-                pw.print(sequence[i + j]);
-            }
-            pw.flush();
-        }
-        pw.close();
+    public static void writeBytesToFile(byte[] sequence, String path) throws IOException {
+        Files.write(Paths.get(path), sequence, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
     }
 }
