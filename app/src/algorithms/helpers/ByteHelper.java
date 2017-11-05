@@ -25,7 +25,7 @@ public class ByteHelper {
         try {
             return str.getBytes("UTF-8");
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            e.printStackTrace(); // Unreachable code
             return null;
         }
     }
@@ -40,7 +40,7 @@ public class ByteHelper {
         try {
             return new String(sequence, "UTF-8");
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            e.printStackTrace(); // Unreachable code
             return null;
         }
     }

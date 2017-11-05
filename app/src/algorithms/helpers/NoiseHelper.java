@@ -4,6 +4,8 @@ import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * This class contains one static method {@code applyNoise} for making some noise for a bit (byte) sequence.
+ *
+ * Created by Denis Chernikov on 2017-11-05
  */
 public class NoiseHelper {
     /**
