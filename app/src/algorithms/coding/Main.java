@@ -24,10 +24,10 @@ public class Main {
                         alg.decodeByteString(code),
                         StandardOpenOption.CREATE,
                         StandardOpenOption.WRITE);
+//                System.out.println(new String(alg.decodeByteString(code)) + '\n');
             } catch (DecodingException e) {
                 e.printStackTrace();
             }
-//            System.out.println(new String(alg.decodeByteString(code)) + '\n');
         }
     }
 
