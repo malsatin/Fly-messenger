@@ -11,6 +11,8 @@ import java.nio.file.Paths;
  * This class represents some operations with files as sequences of bytes.
  * <p>
  * Created by Sergey Malyutkin on 2017-11-05
+ * <p>
+ * Edited by Denis Chernikov on 2017-11-05
  */
 public class ByteHelper {
     /**
