@@ -46,7 +46,7 @@ public class ByteHelper {
     }
 
     /**
-     * GEt the sequence of bytes out of the specified file.
+     * Get the sequence of bytes out of the specified file.
      *
      * @param path Path to the source file
      * @return Sequence of bytes out of the specified file
