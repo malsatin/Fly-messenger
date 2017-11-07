@@ -5,11 +5,10 @@ import algorithms.interfaces.ICompressor;
 
 /**
  * LZ77 compression algorithm
- *
+ * <p>
  * Created by Sergey on 2017-11-07
  */
 public class LZ77 implements ICompressor {
-
     @Override
     public byte[] compressByteString(byte[] message) {
         // TODO: implement algorithm
@@ -21,5 +20,4 @@ public class LZ77 implements ICompressor {
         // TODO: implement algorithm
         return sequence.clone();
     }
-
 }
