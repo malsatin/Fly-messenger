@@ -13,7 +13,6 @@ import java.util.ListIterator;
  * Created by Sergey Malyutkin on 2017-11-12
  */
 public class BitStream {
-
     /**
      * Sizes int bits of some primitive types
      */
@@ -45,6 +44,11 @@ public class BitStream {
      * Iterator throw the storage.
      */
     private ListIterator<Long> iter;
+
+    /**
+     * Iterator throw the storage.
+     */
+    public BitStream() {
 
     /**
      * Creates empty stream, that you can fill up.
@@ -102,10 +106,10 @@ public class BitStream {
         boolean[] bits = new boolean[bitsCount];
         boolean[] safeBits = read(bitsCount);
 
-        for(int i = 0, l = safeBits.length; i < l; i++) {
+        for (int i = 0, l = safeBits.length; i < l; i++) {
             bits[i] = safeBits[i];
         }
-        for(int i = safeBits.length; i < bitsCount; i++) {
+        for (int i = safeBits.length; i < bitsCount; i++) {
             bits[i] = false;
         }
 
@@ -113,17 +117,17 @@ public class BitStream {
     }
 
     private long readNumber(int bitsCount) {
-        if(bitsCount < 1) {
+        if (bitsCount < 1) {
             throw new InvalidParameterException("Can't read non-positive number of bits");
         }
-        if(bitsCount > 64) {
+        if (bitsCount > 64) {
             throw new InvalidParameterException("Can't return more than 64 bits");
         }
 
         long result = 0;
         boolean[] bits = readAsBool(bitsCount);
 
-        for(boolean bit : bits) {
+        for (boolean bit : bits) {
             result = (result << 1) + (bit ? 1 : 0);
         }
 
@@ -137,19 +141,20 @@ public class BitStream {
      * @return Array of boolean means of {@code bitsCount} next succeed bits in a stream
      */
     public boolean[] readAsBool(int bitsCount) {
-        if(bitsCount < 1) {
+        if (bitsCount < 1) {
             return new boolean[0];
         }
         int resCount = Math.min(bitsCount, size - pointer);
         boolean[] res = new boolean[resCount];
         long cur = 0L;
         int pos = LONG_SIZE;
-        for(int i = 0; i < resCount; ++i) {
-            if(pos == LONG_SIZE) {
+        for (int i = 0; i < resCount; ++i) {
+            if (pos == LONG_SIZE) {
                 cur = iter.next();
+                ++pointer;
             }
             res[i] = (cur & (1 << (pos - 1))) != 0;
-            if(--pos == 0) {
+            if (--pos == 0) {
                 pos = 0;
             }
         }
@@ -157,63 +162,61 @@ public class BitStream {
     }
 
     /**
-     * @return
+     * @return Next int from the stream
      */
     public int readInt() {
-        return (int)readNumber(INT_SIZE);
+        return (int) readNumber(INT_SIZE);
     }
 
     /**
-     * @return
+     * @return Next char from the stream
      */
     public char readChar() {
-        return (char)readInt();
+        return (char) readInt();
     }
 
     /**
-     * @param data
-     */
-    public void addByte(byte data) {
-        // TODO
-    }
-
-    public void addByteArray(byte[] data) {
-        for(byte aData : data) {
-            addByte(aData);
-        }
-    }
-
-    /**
-     * @param data
+     * @param data Int to append at the end of the stream
      */
     public void addInt(int data) {
         // TODO
     }
 
     /**
-     * @param data
+     * @param data Byte to append at the end of the stream
      */
-    public void addChar(char data) {
-        addInt((int)data);
+    public void addByte(byte data) {
+        // TODO
     }
 
     /**
-     * Appends 1 bit to the end of the stream.
-     *
-     * @param data true == 1; false == 0
+     * @param data Char to append at the end of the stream
+     */
+    public void addChar(char data) {
+        addInt((int) data);
+    }
+
+    /**
+     * @param data Byte sequence to append at the end of the stream
+     */
+    public void addByteArray(byte[] data) {
+        for (byte aData : data) {
+            addByte(aData);
+        }
+    }
+
+    /**
+     * @param data Bit to append at the end of the stream
      */
     public void addBit(boolean data) {
         // TODO
     }
 
     /**
-     * Appends 1 bit to the end of the stream.
-     *
-     * @param data Least significant bit will be used
+     * @param data Bit to append at the end of the stream (LSB of int is considered)
      */
     public void addBit(int data) {
-        data &= 1; // Remains only LSB
-
+        data &= 1;  // Remains only LSB
         addBit(data == 1);
     }
 
@@ -224,8 +227,14 @@ public class BitStream {
      * @param bitsToSkip Number of bits to skip in the stream
      */
     public void skip(int bitsToSkip) {
+        int oldPointer = pointer;
         pointer += bitsToSkip;
-        if(pointer > size) {
+        for (int i = oldPointer; i < pointer; ++i) {
+            if (i % LONG_SIZE == 0) {
+                iter.next();  // TODO check iterator
+            }
+        }
+        if (pointer > size) {
             pointer = size;
         }
     }
@@ -258,9 +267,8 @@ public class BitStream {
      */
     public int reset() {
         int tmp = pointer;
-
         pointer = 0;
-
+        iter = storage.listIterator();
         return tmp;
     }
 
@@ -270,8 +278,8 @@ public class BitStream {
     public void clear() {
         pointer = 0;
         size = 0;
-
         storage = new ArrayList<>();
+        iter = storage.listIterator();
     }
 
     /**
@@ -288,7 +296,7 @@ public class BitStream {
         for(int i = 0; i < storage.size(); i++) {
             for(int j = 0; j < LONG_SIZE; j++) {
                 int curByteInd = tmpPointer / BYTE_SIZE;
-                byte curBit = (byte)(storage.get(i) >> j & 1);
+                byte curBit = (byte) (storage.get(i) >> j & 1);
                 bytes[curByteInd] = (byte)((bytes[curByteInd] << 1) + curBit);
 
                 tmpPointer++;
