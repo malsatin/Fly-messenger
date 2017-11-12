@@ -7,13 +7,23 @@ import java.util.ArrayList;
  * BitStream makes work with bits simpler.
  * That is useful, when you are working with encoding/decoding/compressing/decompressing.
  * <p>
+ * All bits goes in this ( --> ) direction.
+ * <p>
  * Created by Sergey Malyutkin on 2017-11-12
  */
 public class BitStream {
 
+    /**
+     * Sizes int bits of some primitive types
+     */
     private final int BYTE_SIZE = 8;
     private final int INT_SIZE = 32;
     private final int LONG_SIZE = 64;
+
+    /**
+     * How many bits to display in a block in toString method
+     */
+    private final int DISPLAY_BLOCK_SIZE = 8;
 
     /**
      * Number of the current bit in the stream
@@ -39,7 +49,7 @@ public class BitStream {
     /**
      * Creates stream, filled with your data
      *
-     * @param stream Data to be added immediately
+     * @param stream Data to be added immediately into the stream
      */
     BitStream(byte[] stream) {
         this();
@@ -48,24 +58,72 @@ public class BitStream {
     }
 
     /**
-     * @param bitsCount
-     * @return
+     * Creates stream, filled with your data and cuts it to the size
+     * Useful, if you have last not full last byte and don't want unwanted data
+     *
+     * @param stream Data to be added immediately into the stream
+     * @param size   Size int bits of the stream
      */
-    public long read(int bitsCount) {
+    BitStream(byte[] stream, int size) {
+        this(stream);
+
+        this.size = size;
+    }
+
+    /**
+     * If there remains less bits than bitsCount,
+     * then only remained bits will be returned
+     *
+     * @param bitsCount
+     * @return Array of bits in boolean form
+     */
+    public boolean[] read(int bitsCount) {
+        // TODO
+
+        return null;
+    }
+
+    /**
+     * If there remains less bits than bitsCount,
+     * then missing bits will be filled up with zeros
+     *
+     * @param bitsCount
+     * @return Array of bits in boolean form
+     */
+    public boolean[] readUnsafe(int bitsCount) {
+        boolean[] bits = new boolean[bitsCount];
+        boolean[] safeBits = read(bitsCount);
+
+        for(int i = 0, l = safeBits.length; i < l; i++) {
+            bits[i] = safeBits[i];
+        }
+        for(int i = safeBits.length; i < bitsCount; i++) {
+            bits[i] = false;
+        }
+
+        return bits;
+    }
+
+    private long readNumber(int bitsCount) {
         if(bitsCount > 64) {
             throw new InvalidParameterException("Can't return more than 64 bits");
         }
 
-        // TODO
+        long result = 0;
+        boolean[] bits = read(bitsCount);
 
-        return 0;
+        for(boolean bit : bits) {
+            result = (result << 1) + (bit ? 1 : 0);
+        }
+
+        return result;
     }
 
     /**
      * @return
      */
     public int readInt() {
-        return (int)read(INT_SIZE);
+        return (int)readNumber(INT_SIZE);
     }
 
     /**
@@ -183,9 +241,18 @@ public class BitStream {
      * @return Array of bytes (from stream start to the end)
      */
     public byte[] toByteArray() {
-        // TODO
+        int bytesCount = size / BYTE_SIZE;
+        if(size % BYTE_SIZE != 0) {
+            bytesCount += 1;
+        }
 
-        return null;
+        byte[] bytes = new byte[bytesCount];
+        for(int i = 0; i < size; i++) {
+            //bytes[i] = (byte)(l >> (size - i - 1 << 3));
+            //TODO
+        }
+
+        return bytes;
     }
 
     @Override
