@@ -138,13 +138,13 @@ public class BitStream {
         int resCount = Math.min(bitsCount, size - pointer);
         boolean[] res = new boolean[resCount];
         long cur = 0L;
-        int pos = 0;
+        int pos = LONG_SIZE;
         for (int i = 0; i < resCount; ++i) {
-            if (pos == 0) {
+            if (pos == LONG_SIZE) {
                 cur = iter.next();
             }
-            res[i] = (cur & (1 << pos)) != 0;
-            if (++pos == LONG_SIZE) {
+            res[i] = (cur & (1 << (pos - 1))) != 0;
+            if (--pos == 0) {
                 pos = 0;
             }
         }
