@@ -42,7 +42,7 @@ public class BitStream {
     /**
      * Creates empty stream, that you can fill up
      */
-    BitStream() {
+    public BitStream() {
         storage = new ArrayList<>();
     }
 
@@ -51,7 +51,7 @@ public class BitStream {
      *
      * @param stream Data to be added immediately into the stream
      */
-    BitStream(byte[] stream) {
+    public BitStream(byte[] stream) {
         this();
 
         addByteArray(stream);
@@ -64,7 +64,7 @@ public class BitStream {
      * @param stream Data to be added immediately into the stream
      * @param size   Size int bits of the stream
      */
-    BitStream(byte[] stream, int size) {
+    public BitStream(byte[] stream, int size) {
         this(stream);
 
         this.size = size;
@@ -246,20 +246,68 @@ public class BitStream {
             bytesCount += 1;
         }
 
+        int tmpPointer = 0;
         byte[] bytes = new byte[bytesCount];
-        for(int i = 0; i < size; i++) {
-            //bytes[i] = (byte)(l >> (size - i - 1 << 3));
-            //TODO
+        for(int i = 0; i < storage.size(); i++) {
+            for(int j = 0; j < LONG_SIZE; j++) {
+                int curByteInd = tmpPointer / BYTE_SIZE;
+                byte curBit = (byte) (storage.get(i) >> j & 1);
+                bytes[curByteInd] = (byte)((bytes[curByteInd] << 1) + curBit);
+
+                tmpPointer++;
+                if(tmpPointer >= size) {
+                    break;
+                }
+            }
         }
 
         return bytes;
     }
 
+    /**
+     * @return Array of bits in boolean form (from stream start to the end)
+     */
+    private boolean[] toBitArray() {
+        boolean[] bits = new boolean[size];
+
+        int tmpPointer = 0;
+        for(int i = 0; i < storage.size(); i++) {
+            for(int j = 0; j < LONG_SIZE; j++) {
+                bits[tmpPointer] = (storage.get(i) >> j & 1) == 1;
+
+                tmpPointer++;
+                if(tmpPointer >= size) {
+                    break;
+                }
+            }
+        }
+
+        return bits;
+    }
+
+    /**
+     * @return Binary representation, divided into blocks
+     */
     @Override
     public String toString() {
-        // TODO
+        StringBuilder result = new StringBuilder();
+        boolean[] bits = toBitArray();
 
-        return super.toString();
+        for(int i = 0; i < size; i++) {
+            result.append(bits[i] ? 1 : 0);
+            if(i % DISPLAY_BLOCK_SIZE == 0 && i != 0) {
+                result.append(" ");
+            }
+        }
+
+        int missedBitsCount = DISPLAY_BLOCK_SIZE - (size % DISPLAY_BLOCK_SIZE);
+        if(missedBitsCount != DISPLAY_BLOCK_SIZE) {
+            for(int i = 0; i < missedBitsCount; i++) {
+                result.append("x");
+            }
+        }
+
+        return result.toString();
     }
 
 }
