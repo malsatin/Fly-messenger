@@ -2,6 +2,7 @@ package algorithms.helpers;
 
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.ListIterator;
 
 /**
  * BitStream makes work with bits simpler.
@@ -10,40 +11,42 @@ import java.util.ArrayList;
  * Created by Sergey Malyutkin on 2017-11-12
  */
 public class BitStream {
-
     private final int BYTE_SIZE = 8;
     private final int INT_SIZE = 32;
     private final int LONG_SIZE = 64;
 
     /**
-     * Number of the current bit in the stream
+     * Number of the current bit in the stream.
      */
     private int pointer = 0;
+
     /**
-     * Size of the stream in bits
+     * Size of the stream in bits.
      */
     private int size = 0;
 
     /**
-     * Storage of bits. Not optimal one, but flexible and relatively fast
+     * Storage of bits. Not optimal one, but flexible and relatively fast.
      */
     private ArrayList<Long> storage;
 
+    private ListIterator<Long> iter;
+
     /**
-     * Creates empty stream, that you can fill up
+     * Creates empty stream, that you can fill up.
      */
-    BitStream() {
+    public BitStream() {
         storage = new ArrayList<>();
+        iter = storage.listIterator();
     }
 
     /**
-     * Creates stream, filled with your data
+     * Creates stream, filled with your data.
      *
      * @param stream Data to be added immediately
      */
-    BitStream(byte[] stream) {
+    public BitStream(byte[] stream) {
         this();
-
         addByteArray(stream);
     }
 
@@ -52,7 +55,10 @@ public class BitStream {
      * @return
      */
     public long read(int bitsCount) {
-        if(bitsCount > 64) {
+        if (bitsCount < 1) {
+            throw new InvalidParameterException("Can't read non-positive number of bits");
+        }
+        if (bitsCount > 64) {
             throw new InvalidParameterException("Can't return more than 64 bits");
         }
 
@@ -62,17 +68,40 @@ public class BitStream {
     }
 
     /**
+     * Returns an array of booleans of provided length as a sequence of next unread bits in a stream.
+     *
+     * @param bitsCount Number of bits to read
+     * @return Array of boolean means of {@code bitsCount} next succeed bits in a stream
+     */
+    public boolean[] readAsBool(int bitsCount) {
+        if (bitsCount < 1) {
+            return new boolean[0];
+        }
+        int resCount = Math.min(bitsCount, size - pointer);
+        boolean[] res = new boolean[resCount];
+        long cur = 0L;
+        for (int i = 0; i < resCount; ++i) {
+            byte pos = (byte) (i % LONG_SIZE);
+            if (pos == 0) {
+                cur = iter.next();
+            }
+            res[i] = (cur & (1 << pos)) != 0;
+        }
+        return res;
+    }
+
+    /**
      * @return
      */
     public int readInt() {
-        return (int)read(INT_SIZE);
+        return (int) read(INT_SIZE);
     }
 
     /**
      * @return
      */
     public char readChar() {
-        return (char)readInt();
+        return (char) readInt();
     }
 
     /**
@@ -83,7 +112,7 @@ public class BitStream {
     }
 
     public void addByteArray(byte[] data) {
-        for(byte aData : data) {
+        for (byte aData : data) {
             addByte(aData);
         }
     }
@@ -99,7 +128,7 @@ public class BitStream {
      * @param data
      */
     public void addChar(char data) {
-        addInt((int)data);
+        addInt((int) data);
     }
 
     /**
@@ -130,7 +159,7 @@ public class BitStream {
      */
     public void skip(int bitsToSkip) {
         pointer += bitsToSkip;
-        if(pointer > size) {
+        if (pointer > size) {
             pointer = size;
         }
     }
