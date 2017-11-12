@@ -1,4 +1,4 @@
-public package algorithms.helpers;
+package algorithms.helpers;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;

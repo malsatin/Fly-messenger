@@ -49,7 +49,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         setContentView(R.layout.activity_second);
         Log.d(first.TAG, "second.class onCreate");
 
-        client = new TCPClient("localhost", 3128);
+       // client = new TCPClient("localhost", 3128);
 
         // my_child_toolbar is defined in the layout file
         Toolbar myChildToolbar =
@@ -62,6 +62,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         // ab.setBackgroundDrawable(getResources().getDrawable(R.drawable.bar));
         intent = getIntent();
         ab.setTitle(intent.getStringExtra(first.C_NICKNAME));
+
 
         lLscroll = (LinearLayout) findViewById(R.id.llscroll);
         layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -123,7 +124,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                 return true;
             case R.id.clear:
                 // Get messages
-                byte[][] result = client.getMessages(0);
+                //byte[][] result = client.getMessages(0);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
