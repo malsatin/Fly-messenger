@@ -2,28 +2,17 @@ package com.example.denis.p7;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.Typeface;
-import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Parcel;
-import android.provider.MediaStore;
-import android.support.constraint.ConstraintSet;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.ActivityChooserView;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
-import android.text.Spannable;
-import android.text.SpannableString;
-import android.text.Spanned;
 import android.text.TextWatcher;
-import android.text.style.StyleSpan;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuInflater;
@@ -31,39 +20,36 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import java.io.File;
-import java.util.Locale;
 
 public class second extends AppCompatActivity implements View.OnClickListener, PopupMenu.OnMenuItemClickListener {
     ActionBar ab;
     FloatingActionButton fabAttach;
     FloatingActionButton fabSend;
     EditText editText;
-    LinearLayout linearLayout;
+    LinearLayout lLscroll;
     LinearLayout.LayoutParams layoutParams;
-    TextView textView;
+    TextView msgTV;
     ImageView iV;
     InputMethodManager imm;
     Intent intent;
     final int REQUEST_CODE_IMAGE = 1;
     final int REQUEST_CODE_AUDIO = 2;
     String uri;
-    int i = 11110;
+    int k=0;
+    TCPClient client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_second);
         Log.d(first.TAG, "second.class onCreate");
+
+        client = new TCPClient("localhost", 3128);
 
         // my_child_toolbar is defined in the layout file
         Toolbar myChildToolbar =
@@ -77,7 +63,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         intent = getIntent();
         ab.setTitle(intent.getStringExtra(first.C_NICKNAME));
 
-        linearLayout = (LinearLayout) findViewById(R.id.llscroll);
+        lLscroll = (LinearLayout) findViewById(R.id.llscroll);
         layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         layoutParams.gravity = Gravity.LEFT | Gravity.BOTTOM;
 
@@ -131,13 +117,13 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         switch (item.getItemId()) {
             case android.R.id.home:
                 intent = new Intent(this, first.class);
-                Log.e(first.TAG, "      home");
                 startActivity(intent);
                 return true;
             case R.id.fullInfo:
                 return true;
             case R.id.clear:
-                linearLayout.removeAllViews();
+                // Get messages
+                byte[][] result = client.getMessages(0);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -149,22 +135,23 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.fabSend:
-                LinearLayout lLmsg=new LinearLayout(this);
-                textView = new TextView(this);
+                LinearLayout msglL=new LinearLayout(this);
+                msgTV = new TextView(this);
 
                 layoutParams.setMargins(5, 5, 5, 5);
-                //   textView.setBackgroundColor(getColor(R.color.message));
-                //   textView.setTextColor(getColor(R.color.black));
-                lLmsg.setLayoutParams(layoutParams);
+                msglL.setLayoutParams(layoutParams);
                 layoutParams.setMargins(45, 20, 30, 0);
-                textView.setLayoutParams(layoutParams);
-                textView.setText(editText.getText());
+                msgTV.setLayoutParams(layoutParams);
 
+                msgTV.setText(editText.getText());
+                msglL.setBackgroundResource(R.drawable.msg_in);
 
-                lLmsg.setBackgroundResource(R.drawable.msg_in);
-               // linearLayout.text
-                lLmsg.addView(textView);
-                linearLayout.addView(lLmsg);
+                msglL.addView(msgTV);
+                lLscroll.addView(msglL);
+
+                // Send bytes to server
+                //client.sendMessage();
+
                 imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
                 editText.setText("");
                 fabAttach.setVisibility(View.VISIBLE);
@@ -220,34 +207,26 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                     LinearLayout lLmsg=new LinearLayout(this);
                     uri = data.getDataString();
                     iV = new ImageView(this);
-
                     layoutParams.setMargins(5, 5, 5, 5);
-                    //   textView.setBackgroundColor(getColor(R.color.message));
-                    //   textView.setTextColor(getColor(R.color.black));
                     lLmsg.setLayoutParams(layoutParams);
-                    //layoutParams.setMargins(45, 20, 30, 0);
                     iV.setLayoutParams(layoutParams);
                     lLmsg.setBackgroundResource(R.drawable.msg_photo);
                     iV.setImageURI(Uri.parse(uri));
-
-
-                    iV.setId(i++);
                     iV.setContentDescription(uri);
                     iV.setOnClickListener(onClickListenerIV);
-
                     // linearLayout.text
                     lLmsg.addView(iV);
-
-                    linearLayout.addView(lLmsg);
+                    lLscroll.addView(lLmsg);
                     break;
+
                 case REQUEST_CODE_AUDIO:
                     uri = data.getDataString();
-                    textView = new TextView(this);
-                    textView.setText(data.toString());
-                    textView.setContentDescription(uri);
-                    textView.setOnClickListener(onClickListenerAV);
-                    textView.setLayoutParams(layoutParams);
-                    linearLayout.addView(textView);
+                    msgTV = new TextView(this);
+                    msgTV.setText(data.toString());
+                    msgTV.setContentDescription(uri);
+                    msgTV.setOnClickListener(onClickListenerAV);
+                    msgTV.setLayoutParams(layoutParams);
+                    lLscroll.addView(msgTV);
                     break;
             }
         }
