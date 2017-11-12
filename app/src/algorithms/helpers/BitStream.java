@@ -90,7 +90,7 @@ public class BitStream {
      * If there remains less bits than bitsCount,
      * then missing bits will be filled up with zeros.
      *
-     * @param bitsCount
+     * @param bitsCount Number of bits to read
      * @return Array of bits in boolean form
      */
     public boolean[] readUnsafe(int bitsCount) {
@@ -138,12 +138,15 @@ public class BitStream {
         int resCount = Math.min(bitsCount, size - pointer);
         boolean[] res = new boolean[resCount];
         long cur = 0L;
+        int pos = 0;
         for (int i = 0; i < resCount; ++i) {
-            byte pos = (byte) (i % LONG_SIZE);
             if (pos == 0) {
                 cur = iter.next();
             }
             res[i] = (cur & (1 << pos)) != 0;
+            if (++pos == LONG_SIZE) {
+                pos = 0;
+            }
         }
         return res;
     }
