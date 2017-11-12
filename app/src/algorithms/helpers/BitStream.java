@@ -3,7 +3,6 @@ package algorithms.helpers;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.ListIterator;
 
 /**
  * BitStream makes work with bits simpler.
@@ -368,7 +367,7 @@ public class BitStream {
     /**
      * Gets certain bit in long integer
      *
-     * @param row Long integer to find in
+     * @param row       Long integer to find in
      * @param leftIndex Index of the bit from the left
      * @return Bit value
      */
@@ -382,9 +381,9 @@ public class BitStream {
     /**
      * Sets certain bit in long integer
      *
-     * @param row Long integer to modify
+     * @param row       Long integer to modify
      * @param leftIndex Index of the bit from the left
-     * @param value What value to set
+     * @param value     What value to set
      * @return New long integer
      */
     private long setBit(long row, int leftIndex, boolean value) {
