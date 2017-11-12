@@ -2,6 +2,7 @@ package algorithms.helpers;
 
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.ListIterator;
 
 /**
  * BitStream makes work with bits simpler.
@@ -12,7 +13,6 @@ import java.util.ArrayList;
  * Created by Sergey Malyutkin on 2017-11-12
  */
 public class BitStream {
-
     /**
      * Sizes int bits of some primitive types
      */
@@ -21,50 +21,62 @@ public class BitStream {
     private final int LONG_SIZE = 64;
 
     /**
-     * How many bits to display in a block in toString method
+     * How many bits to display in a block in toString method.
      */
     private final int DISPLAY_BLOCK_SIZE = 8;
 
     /**
-     * Number of the current bit in the stream
+     * Number of the current bit in the stream.
      */
     private int pointer = 0;
+
     /**
-     * Size of the stream in bits
+     * Size of the stream in bits.
      */
     private int size = 0;
 
     /**
-     * Storage of bits. Not optimal one, but flexible and relatively fast
+     * Storage of bits. Not optimal one, but flexible and relatively fast.
      */
     private ArrayList<Long> storage;
 
     /**
-     * Creates empty stream, that you can fill up
+     * Iterator throw the storage.
+     */
+    private ListIterator<Long> iter;
+
+    /**
+     * Iterator throw the storage.
+     */
+    public BitStream() {
+
+    /**
+     * Creates empty stream, that you can fill up.
      */
     public BitStream() {
         storage = new ArrayList<>();
+        iter = storage.listIterator();
     }
 
     /**
-     * Creates stream, filled with your data
+     * Creates stream, filled with your data.
      *
      * @param stream Data to be added immediately into the stream
      */
-    public BitStream(byte[] stream) {
+    BitStream(byte[] stream) {
         this();
 
         addByteArray(stream);
     }
 
     /**
-     * Creates stream, filled with your data and cuts it to the size
-     * Useful, if you have last not full last byte and don't want unwanted data
+     * Creates stream, filled with your data and cuts it to the size.
+     * Useful, if you have last not full last byte and don't want unwanted data.
      *
      * @param stream Data to be added immediately into the stream
      * @param size   Size int bits of the stream
      */
-    public BitStream(byte[] stream, int size) {
+    BitStream(byte[] stream, int size) {
         this(stream);
 
         this.size = size;
@@ -72,9 +84,9 @@ public class BitStream {
 
     /**
      * If there remains less bits than bitsCount,
-     * then only remained bits will be returned
+     * then only remained bits will be returned.
      *
-     * @param bitsCount
+     * @param bitsCount Number of bits to read
      * @return Array of bits in boolean form
      */
     public boolean[] read(int bitsCount) {
@@ -85,19 +97,19 @@ public class BitStream {
 
     /**
      * If there remains less bits than bitsCount,
-     * then missing bits will be filled up with zeros
+     * then missing bits will be filled up with zeros.
      *
-     * @param bitsCount
+     * @param bitsCount Number of bits to read
      * @return Array of bits in boolean form
      */
     public boolean[] readUnsafe(int bitsCount) {
         boolean[] bits = new boolean[bitsCount];
         boolean[] safeBits = read(bitsCount);
 
-        for(int i = 0, l = safeBits.length; i < l; i++) {
+        for (int i = 0, l = safeBits.length; i < l; i++) {
             bits[i] = safeBits[i];
         }
-        for(int i = safeBits.length; i < bitsCount; i++) {
+        for (int i = safeBits.length; i < bitsCount; i++) {
             bits[i] = false;
         }
 
@@ -105,14 +117,17 @@ public class BitStream {
     }
 
     private long readNumber(int bitsCount) {
-        if(bitsCount > 64) {
+        if (bitsCount < 1) {
+            throw new InvalidParameterException("Can't read non-positive number of bits");
+        }
+        if (bitsCount > 64) {
             throw new InvalidParameterException("Can't return more than 64 bits");
         }
 
         long result = 0;
-        boolean[] bits = read(bitsCount);
+        boolean[] bits = readAsBool(bitsCount);
 
-        for(boolean bit : bits) {
+        for (boolean bit : bits) {
             result = (result << 1) + (bit ? 1 : 0);
         }
 
@@ -120,17 +135,43 @@ public class BitStream {
     }
 
     /**
+     * Returns an array of booleans of provided length as a sequence of next unread bits in a stream.
+     *
+     * @param bitsCount Number of bits to read
+     * @return Array of boolean means of {@code bitsCount} next succeed bits in a stream
+     */
+    public boolean[] readAsBool(int bitsCount) {
+        if (bitsCount < 1) {
+            return new boolean[0];
+        }
+        int resCount = Math.min(bitsCount, size - pointer);
+        boolean[] res = new boolean[resCount];
+        long cur = 0L;
+        int pos = LONG_SIZE;
+        for (int i = 0; i < resCount; ++i) {
+            if (pos == LONG_SIZE) {
+                cur = iter.next();
+            }
+            res[i] = (cur & (1 << (pos - 1))) != 0;
+            if (--pos == 0) {
+                pos = 0;
+            }
+        }
+        return res;
+    }
+
+    /**
      * @return
      */
     public int readInt() {
-        return (int)readNumber(INT_SIZE);
+        return (int) readNumber(INT_SIZE);
     }
 
     /**
      * @return
      */
     public char readChar() {
-        return (char)readInt();
+        return (char) readInt();
     }
 
     /**
@@ -141,7 +182,7 @@ public class BitStream {
     }
 
     public void addByteArray(byte[] data) {
-        for(byte aData : data) {
+        for (byte aData : data) {
             addByte(aData);
         }
     }
@@ -157,11 +198,11 @@ public class BitStream {
      * @param data
      */
     public void addChar(char data) {
-        addInt((int)data);
+        addInt((int) data);
     }
 
     /**
-     * Appends 1 bit to the end of the stream
+     * Appends 1 bit to the end of the stream.
      *
      * @param data true == 1; false == 0
      */
@@ -170,25 +211,24 @@ public class BitStream {
     }
 
     /**
-     * Appends 1 bit to the end of the stream
+     * Appends 1 bit to the end of the stream.
      *
      * @param data Least significant bit will be used
      */
     public void addBit(int data) {
         data &= 1; // Remains only LSB
-
         addBit(data == 1);
     }
 
     /**
-     * Skips number of bits in the stream that you will specify
-     * If amount of remaining bits is less than count to skip, then pointer is simply moved to the end
+     * Skips number of bits in the stream that you will specify.
+     * If amount of remaining bits is less than count to skip, then pointer is simply moved to the end.
      *
-     * @param bitsToSkip
+     * @param bitsToSkip Number of bits to skip in the stream
      */
     public void skip(int bitsToSkip) {
         pointer += bitsToSkip;
-        if(pointer > size) {
+        if (pointer > size) {
             pointer = size;
         }
     }
@@ -215,20 +255,18 @@ public class BitStream {
     }
 
     /**
-     * Resets the pointer, so the stream can be read again
+     * Resets the pointer, so the stream can be read again.
      *
      * @return Previous pointer number
      */
     public int reset() {
         int tmp = pointer;
-
         pointer = 0;
-
         return tmp;
     }
 
     /**
-     * Completely clears stream and resets everything
+     * Completely clears stream and resets everything.
      */
     public void clear() {
         pointer = 0;
