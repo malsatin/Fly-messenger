@@ -9,7 +9,14 @@ import algorithms.helpers.BitStream;
 public class BitStreamTest {
 
     public static void main(String[] args) {
-        BitStream stream = new BitStream(new byte[]{10});
+        BitStream stream = new BitStream();
+        stream.addBit(true);
+        stream.addBit(true);
+        stream.addBit(true);
+        stream.addBit(false);
+        stream.addBit(true);
+        stream.addByte((byte)1);
+        stream.addInt(2);
 
         System.out.println(stream.toString());
     }
