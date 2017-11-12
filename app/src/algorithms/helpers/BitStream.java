@@ -142,6 +142,7 @@ public class BitStream {
         for (int i = 0; i < resCount; ++i) {
             if (pos == LONG_SIZE) {
                 cur = iter.next();
+                ++pointer;
             }
             res[i] = (cur & (1 << (pos - 1))) != 0;
             if (--pos == 0) {
@@ -152,26 +153,43 @@ public class BitStream {
     }
 
     /**
-     * @return
+     * @return Next int from the stream
      */
     public int readInt() {
         return (int) readNumber(INT_SIZE);
     }
 
     /**
-     * @return
+     * @return Next char from the stream
      */
     public char readChar() {
         return (char) readInt();
     }
 
     /**
-     * @param data
+     * @param data Int to append at the end of the stream
+     */
+    public void addInt(int data) {
+        // TODO
+    }
+
+    /**
+     * @param data Byte to append at the end of the stream
      */
     public void addByte(byte data) {
         // TODO
     }
 
+    /**
+     * @param data Char to append at the end of the stream
+     */
+    public void addChar(char data) {
+        addInt((int) data);
+    }
+
+    /**
+     * @param data Byte sequence to append at the end of the stream
+     */
     public void addByteArray(byte[] data) {
         for (byte aData : data) {
             addByte(aData);
@@ -179,35 +197,17 @@ public class BitStream {
     }
 
     /**
-     * @param data
-     */
-    public void addInt(int data) {
-        // TODO
-    }
-
-    /**
-     * @param data
-     */
-    public void addChar(char data) {
-        addInt((int) data);
-    }
-
-    /**
-     * Appends 1 bit to the end of the stream.
-     *
-     * @param data true == 1; false == 0
+     * @param data Bit to append at the end of the stream
      */
     public void addBit(boolean data) {
         // TODO
     }
 
     /**
-     * Appends 1 bit to the end of the stream.
-     *
-     * @param data Least significant bit will be used
+     * @param data Bit to append at the end of the stream (LSB of int is considered)
      */
     public void addBit(int data) {
-        data &= 1; // Remains only LSB
+        data &= 1;  // Remains only LSB
         addBit(data == 1);
     }
 
@@ -218,7 +218,13 @@ public class BitStream {
      * @param bitsToSkip Number of bits to skip in the stream
      */
     public void skip(int bitsToSkip) {
+        int oldPointer = pointer;
         pointer += bitsToSkip;
+        for (int i = oldPointer; i < pointer; ++i) {
+            if (i % LONG_SIZE == 0) {
+                iter.next();  // TODO check iterator
+            }
+        }
         if (pointer > size) {
             pointer = size;
         }
@@ -253,6 +259,7 @@ public class BitStream {
     public int reset() {
         int tmp = pointer;
         pointer = 0;
+        iter = storage.listIterator();
         return tmp;
     }
 
@@ -262,8 +269,8 @@ public class BitStream {
     public void clear() {
         pointer = 0;
         size = 0;
-
         storage = new ArrayList<>();
+        iter = storage.listIterator();
     }
 
     /**
