@@ -86,7 +86,7 @@ public class BitStream {
      * @return Array of bits in boolean form
      */
     public boolean[] read(int bitsCount) {
-        if(bitsCount < 1) {
+        if (bitsCount < 1) {
             throw new InvalidParameterException("Can't read non-positive number of bits");
         }
 
@@ -104,21 +104,21 @@ public class BitStream {
     public boolean[] readAsBool(int bitsCount) {
         // TODO: проверить как работает
 
-        if(bitsCount < 1) {
+        if (bitsCount < 1) {
             return new boolean[0];
         }
         int resCount = Math.min(bitsCount, size - pointer);
         boolean[] res = new boolean[resCount];
         long cur = 0L;
         int pos = LONG_SIZE;
-        for(int i = 0; i < resCount; ++i) {
-            if(pos == LONG_SIZE) {
+        for (int i = 0; i < resCount; ++i) {
+            if (pos == LONG_SIZE) {
                 cur = iter.next();
                 ++pointer;
             }
             res[i] = (cur & (1 << (pos - 1))) != 0;
-            if(--pos == 0) {
-                pos = 0;
+            if (--pos == 0) {
+                pos = LONG_SIZE;
             }
         }
 
@@ -136,10 +136,10 @@ public class BitStream {
         boolean[] bits = new boolean[bitsCount];
         boolean[] safeBits = read(bitsCount);
 
-        for(int i = 0, l = safeBits.length; i < l; i++) {
+        for (int i = 0, l = safeBits.length; i < l; i++) {
             bits[i] = safeBits[i];
         }
-        for(int i = safeBits.length; i < bitsCount; i++) {
+        for (int i = safeBits.length; i < bitsCount; i++) {
             bits[i] = false;
         }
 
@@ -147,14 +147,14 @@ public class BitStream {
     }
 
     private long readNumber(int bitsCount) {
-        if(bitsCount > 64) {
+        if (bitsCount > 64) {
             throw new InvalidParameterException("Can't return more than 64 bits");
         }
 
         long result = 0;
         boolean[] bits = readAsBool(bitsCount);
 
-        for(boolean bit : bits) {
+        for (boolean bit : bits) {
             result = (result << 1) + (bit ? 1 : 0);
         }
 
@@ -165,14 +165,14 @@ public class BitStream {
      * @return Next int from the stream
      */
     public int readInt() {
-        return (int)readNumber(INT_SIZE);
+        return (int) readNumber(INT_SIZE);
     }
 
     /**
      * @return Next char from the stream
      */
     public char readChar() {
-        return (char)readInt();
+        return (char) readInt();
     }
 
     /**
@@ -193,14 +193,14 @@ public class BitStream {
      * @param data Character to append at the end of the stream
      */
     public void addChar(char data) {
-        addInt((int)data);
+        addInt((int) data);
     }
 
     /**
      * @param data Byte sequence to append at the end of the stream
      */
     public void addByteArray(byte[] data) {
-        for(byte aData : data) {
+        for (byte aData : data) {
             addByte(aData);
         }
     }
@@ -231,13 +231,13 @@ public class BitStream {
         int oldPointer = pointer;
         pointer += bitsToSkip;
 
-        for(int i = oldPointer; i < pointer; ++i) {
-            if(i % LONG_SIZE == 0) {
+        for (int i = oldPointer; i < pointer; ++i) {
+            if (i % LONG_SIZE == 0) {
                 iter.next();  // TODO check iterator
             }
         }
 
-        if(pointer > size) {
+        if (pointer > size) {
             pointer = size;
         }
     }
@@ -293,20 +293,20 @@ public class BitStream {
      */
     public byte[] toByteArray() {
         int bytesCount = size / BYTE_SIZE;
-        if(size % BYTE_SIZE != 0) {
+        if (size % BYTE_SIZE != 0) {
             bytesCount += 1;
         }
 
         int tmpPointer = 0;
         byte[] bytes = new byte[bytesCount];
-        for(int i = 0; i < storage.size(); i++) {
-            for(int j = 0; j < LONG_SIZE; j++) {
+        for (int i = 0; i < storage.size(); i++) {
+            for (int j = 0; j < LONG_SIZE; j++) {
                 int curByteInd = tmpPointer / BYTE_SIZE;
-                byte curBit = (byte)(storage.get(i) >> j & 1);
-                bytes[curByteInd] = (byte)((bytes[curByteInd] << 1) + curBit);
+                byte curBit = (byte) (storage.get(i) >> j & 1);
+                bytes[curByteInd] = (byte) ((bytes[curByteInd] << 1) + curBit);
 
                 tmpPointer++;
-                if(tmpPointer >= size) {
+                if (tmpPointer >= size) {
                     break;
                 }
             }
@@ -322,12 +322,12 @@ public class BitStream {
         boolean[] bits = new boolean[size];
 
         int tmpPointer = 0;
-        for(int i = 0; i < storage.size(); i++) {
-            for(int j = 0; j < LONG_SIZE; j++) {
+        for (int i = 0; i < storage.size(); i++) {
+            for (int j = 0; j < LONG_SIZE; j++) {
                 bits[tmpPointer] = (storage.get(i) >> j & 1) == 1;
 
                 tmpPointer++;
-                if(tmpPointer >= size) {
+                if (tmpPointer >= size) {
                     break;
                 }
             }
@@ -344,16 +344,16 @@ public class BitStream {
         StringBuilder result = new StringBuilder();
         boolean[] bits = toBitArray();
 
-        for(int i = 0; i < size; i++) {
+        for (int i = 0; i < size; i++) {
             result.append(bits[i] ? 1 : 0);
-            if(i % DISPLAY_BLOCK_SIZE == 0 && i != 0) {
+            if (i % DISPLAY_BLOCK_SIZE == 0 && i != 0) {
                 result.append(" ");
             }
         }
 
         int missedBitsCount = DISPLAY_BLOCK_SIZE - (size % DISPLAY_BLOCK_SIZE);
-        if(missedBitsCount != DISPLAY_BLOCK_SIZE) {
-            for(int i = 0; i < missedBitsCount; i++) {
+        if (missedBitsCount != DISPLAY_BLOCK_SIZE) {
+            for (int i = 0; i < missedBitsCount; i++) {
                 result.append("x");
             }
         }
