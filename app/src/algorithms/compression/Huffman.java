@@ -51,7 +51,6 @@ public class Huffman {
         Byte[] encoded = new Byte[message.length];
 
         for (int i = 0; i < message.length; i++) {
-            System.out.print(map.get(message[i]) + " ");
             encoded[i] = Byte.parseByte(map.get(message[i]));
         }
         return encoded;
