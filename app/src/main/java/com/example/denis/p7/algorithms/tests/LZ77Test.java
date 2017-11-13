@@ -1,4 +1,4 @@
-package algorithms.tests;
+package com.example.denis.p7.algorithms.tests;
 
 /**
  * Example of LZ77 algorithm usage.

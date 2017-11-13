@@ -1,3 +1,5 @@
+package com.example.denis.p7.algorithms.compression;
+
 import java.util.Comparator;
 
 public class MyComparator implements Comparator<Node> {

@@ -26,6 +26,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.example.denis.p7.algorithms.helpers.ByteHelper;
+
 public class second extends AppCompatActivity implements View.OnClickListener, PopupMenu.OnMenuItemClickListener {
     ActionBar ab;
     FloatingActionButton fabAttach;
@@ -40,7 +42,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
     final int REQUEST_CODE_IMAGE = 1;
     final int REQUEST_CODE_AUDIO = 2;
     String uri;
-    int k=0;
+    int k = 0;
     TCPClient client;
 
     @Override
@@ -49,7 +51,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         setContentView(R.layout.activity_second);
         Log.d(first.TAG, "second.class onCreate");
 
-       // client = new TCPClient("localhost", 3128);
+        client = new TCPClient("localhost", 3128);
 
         // my_child_toolbar is defined in the layout file
         Toolbar myChildToolbar =
@@ -124,7 +126,22 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                 return true;
             case R.id.clear:
                 // Get messages
-                //byte[][] result = client.getMessages(0);
+                byte[][] result = client.getMessages(0);
+
+                LinearLayout msglL = new LinearLayout(this);
+                msgTV = new TextView(this);
+
+                layoutParams.setMargins(5, 5, 5, 5);
+                msglL.setLayoutParams(layoutParams);
+                layoutParams.setMargins(45, 20, 30, 0);
+                msgTV.setLayoutParams(layoutParams);
+
+                msgTV.setText(ByteHelper.getStringFromBytes(result[0]).toString());
+                msglL.setBackgroundResource(R.drawable.msg_in);
+
+                msglL.addView(msgTV);
+                lLscroll.addView(msglL);
+
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -136,22 +153,11 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.fabSend:
-                LinearLayout msglL=new LinearLayout(this);
-                msgTV = new TextView(this);
 
-                layoutParams.setMargins(5, 5, 5, 5);
-                msglL.setLayoutParams(layoutParams);
-                layoutParams.setMargins(45, 20, 30, 0);
-                msgTV.setLayoutParams(layoutParams);
-
-                msgTV.setText(editText.getText());
-                msglL.setBackgroundResource(R.drawable.msg_in);
-
-                msglL.addView(msgTV);
-                lLscroll.addView(msglL);
-
+                byte[] bytes1=ByteHelper.getBytesFromString(editText.getText().toString());
                 // Send bytes to server
-                //client.sendMessage();
+                client.sendMessage(bytes1);
+                Log.d(first.TAG, "is sended   ");
 
                 imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
                 editText.setText("");
@@ -205,7 +211,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         if (resultCode == RESULT_OK) {
             switch (requestCode) {
                 case REQUEST_CODE_IMAGE:
-                    LinearLayout lLmsg=new LinearLayout(this);
+                    LinearLayout lLmsg = new LinearLayout(this);
                     uri = data.getDataString();
                     iV = new ImageView(this);
                     layoutParams.setMargins(5, 5, 5, 5);

@@ -1,6 +1,6 @@
-package algorithms.tests;
+package com.example.denis.p7.algorithms.tests;
 
-import algorithms.helpers.BitStream;
+import com.example.denis.p7.algorithms.helpers.BitStream;
 
 /**
  * Fly-messenger

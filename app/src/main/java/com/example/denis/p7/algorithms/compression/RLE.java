@@ -1,7 +1,7 @@
-package algorithms.compression;
+package com.example.denis.p7.algorithms.compression;
 
-import algorithms.exceptions.DecompressionException;
-import algorithms.interfaces.ICompressor;
+import com.example.denis.p7.algorithms.exceptions.DecompressionException;
+import com.example.denis.p7.algorithms.interfaces.ICompressor;
 
 /**
  * RLE compression algorithm

@@ -1,7 +1,8 @@
+package com.example.denis.p7.algorithms.compression;
 import java.util.*;
 
 public class Huffman {
-    public Byte[] compressByteString(byte[] message) {
+    public Byte[] compressByteString(java.lang.Byte[] message) {
         Map<Byte, Integer> map = countFrequency(message);
         Node root = buildTree(map);
         Map<Byte, String> codes = new HashMap<Byte, String>();

@@ -1,3 +1,5 @@
+package com.example.denis.p7.algorithms.compression;
+
 public class Node {
     Node left;
     Node right;

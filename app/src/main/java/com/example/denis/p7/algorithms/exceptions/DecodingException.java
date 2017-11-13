@@ -1,4 +1,4 @@
-package algorithms.exceptions;
+package com.example.denis.p7.algorithms.exceptions;
 
 /**
  * Exception of an unresolved mistake while decoding.

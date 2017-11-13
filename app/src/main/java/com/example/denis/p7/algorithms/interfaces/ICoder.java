@@ -1,6 +1,6 @@
-package algorithms.interfaces;
+package com.example.denis.p7.algorithms.interfaces;
 
-import algorithms.exceptions.DecodingException;
+import com.example.denis.p7.algorithms.exceptions.DecodingException;
 
 import java.util.LinkedList;
 

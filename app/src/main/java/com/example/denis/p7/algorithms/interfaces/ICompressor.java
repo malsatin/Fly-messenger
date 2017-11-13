@@ -1,6 +1,6 @@
-package algorithms.interfaces;
+package com.example.denis.p7.algorithms.interfaces;
 
-import algorithms.exceptions.DecompressionException;
+import com.example.denis.p7.algorithms.exceptions.DecompressionException;
 
 /**
  * Interface of Compressing/Decompressing algorithm.

@@ -1,4 +1,4 @@
-package algorithms.helpers;
+package com.example.denis.p7.algorithms.helpers;
 
 import java.util.concurrent.ThreadLocalRandom;
 
