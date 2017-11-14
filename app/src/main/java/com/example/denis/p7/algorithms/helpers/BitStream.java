@@ -260,9 +260,16 @@ public class BitStream {
     }
 
     /**
-     * @return Is the steam doesn't contain any more bits
+     * @return Does stream contain any data at all
      */
     public boolean isEmpty() {
+        return size() == 0;
+    }
+
+    /**
+     * @return Does the steam contain any more unread bits
+     */
+    public boolean hasBits() {
         return bitsRemain() == 0;
     }
 
