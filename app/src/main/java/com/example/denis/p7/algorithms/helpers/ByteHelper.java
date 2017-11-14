@@ -69,8 +69,9 @@ public class ByteHelper {
             }
         } finally {
             try {
-                if (ios != null)
+                if (ios != null) {
                     ios.close();
+                }
             } catch (IOException e) {
             }
         }
@@ -78,15 +79,18 @@ public class ByteHelper {
         return buffer;
     }
 
-//    /**
-//     * Write the sequence of bytes to the file specified by the path.
-//     * New file will be created; already existing file will be truncated to the length 0.
-//     *
-//     * @param sequence Sequence of bytes to write into file
-//     * @param path     Path to the destination file
-//     * @throws FileNotFoundException Path is wrong or some other error has occurred
-//     */
-//    public static void writeBytesToFile(byte[] sequence, String path) throws IOException {
-//        Files.write(Paths.get(path), sequence, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
-//    }
+    /**
+     * Write the sequence of bytes to the file specified by the path.
+     * New file will be created; already existing file will be truncated to the length 0.
+     *
+     * @param sequence Sequence of bytes to write into file
+     * @param path     Path to the destination file
+     * @throws FileNotFoundException Path is wrong or some other error has occurred
+     * @throws IOException If some exception occurred while writing to file
+     */
+    public static void writeBytesToFile(byte[] sequence, String path) throws IOException {
+        FileOutputStream fos = new FileOutputStream(path);
+        fos.write(sequence);
+        fos.close();
+    }
 }
