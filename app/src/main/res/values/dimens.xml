@@ -1,4 +1,9 @@
 <resources>
     <dimen name="fab_margin">8dp</dimen>
     <dimen name="bigText">12sp</dimen>
+    <dimen name="marginFromMsgLL">5dp</dimen>
+    <dimen name="marginToMsgLL">70dp</dimen>
+    <dimen name="marginSemiIntervalMsgLL">5dp</dimen>
+    <dimen name="marginLeftMsgTV">15dp</dimen>
+    <dimen name="marginLostMsgTV">10dp</dimen>
 </resources>
