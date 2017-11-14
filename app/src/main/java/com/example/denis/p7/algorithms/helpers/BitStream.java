@@ -97,7 +97,7 @@ public class BitStream {
      * @param bitsCount Number of bits to read
      * @return Array of boolean means of {@code bitsCount} next succeed bits in a stream
      */
-    public boolean[] readAsBool(int bitsCount) {
+    public boolean[] readBits(int bitsCount) {
         if(bitsCount < 1) {
             throw new InvalidParameterException("Can't read non-positive number of bits");
         }
@@ -108,11 +108,7 @@ public class BitStream {
         boolean[] result = new boolean[resCount];
 
         for(int i = 0; i < resCount; i++) {
-            long curLong = storage.get(pointer / LONG_SIZE);
-            int indexInLong = pointer % LONG_SIZE;
-
-            result[i] = getBit(curLong, indexInLong);
-            pointer++;
+            result[i] = readBit();
         }
 
         return result;
@@ -127,7 +123,7 @@ public class BitStream {
      */
     public boolean[] readUnsafe(int bitsCount) {
         boolean[] bits = new boolean[bitsCount];
-        boolean[] safeBits = readAsBool(bitsCount);
+        boolean[] safeBits = readBits(bitsCount);
 
         for(int i = 0, l = safeBits.length; i < l; i++) {
             bits[i] = safeBits[i];
@@ -140,12 +136,12 @@ public class BitStream {
     }
 
     private long readNumber(int bitsCount) {
-        if(bitsCount > 64) {
+        if(bitsCount > LONG_SIZE) {
             throw new InvalidParameterException("Can't return more than 64 bits");
         }
 
         long result = 0;
-        boolean[] bits = readAsBool(bitsCount);
+        boolean[] bits = readBits(bitsCount);
 
         for(boolean bit : bits) {
             // Shifts number, clears lsb and sets it to appropriate bit
@@ -207,6 +203,19 @@ public class BitStream {
     }
 
     /**
+     * Adds arbitrary number of bits from the right of `data`
+     * Example: 6bits from 100101101 is 101101
+     *
+     * @param data Container of bits
+     * @param size Count of bits to add
+     */
+    public void addNumber(long data, int size) {
+        for(int i = LONG_SIZE - 1; i >= LONG_SIZE - size; i--) {
+            addBit(((data >> i) & 1) == 1);
+        }
+    }
+
+    /**
      * @param data Byte to append at the end of the stream
      */
     public void addByte(byte data) {
@@ -237,7 +246,7 @@ public class BitStream {
      * @param data Character to append at the end of the stream
      */
     public void addChar(char data) {
-        addInt((int)data);
+        addByte((byte)data);
     }
 
     /**
@@ -279,7 +288,7 @@ public class BitStream {
      * @return Does the steam contain any more unread bits
      */
     public boolean hasBits() {
-        return bitsRemain() == 0;
+        return bitsRemain() != 0;
     }
 
     /**
