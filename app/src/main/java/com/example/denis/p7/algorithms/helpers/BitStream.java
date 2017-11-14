@@ -2,6 +2,7 @@ package com.example.denis.p7.algorithms.helpers;
 
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * BitStream makes work with bits simpler.
@@ -147,10 +148,18 @@ public class BitStream {
         boolean[] bits = readAsBool(bitsCount);
 
         for(boolean bit : bits) {
-            result = (result << 1) & (bit ? 1 : 0);
+            // Shifts number, clears lsb and sets it to appropriate bit
+            result = (result << 1) & ~(1) | (bit ? 1 : 0);
         }
 
         return result;
+    }
+
+    /**
+     * @return Next byte from the stream
+     */
+    public byte readByte() {
+        return (byte)readNumber(BYTE_SIZE);
     }
 
     /**
@@ -310,8 +319,8 @@ public class BitStream {
         for(int i = 0; i < storage.size(); i++) {
             for(int j = 0; j < LONG_SIZE; j++) {
                 int curByteInd = tmpPointer / BYTE_SIZE;
-                byte curBit = (byte)(storage.get(i) >> j & 1);
-                bytes[curByteInd] = (byte)((bytes[curByteInd] << 1) + curBit);
+                byte curBit = (byte)(getBit(storage.get(i), j) ? 1 : 0);
+                bytes[curByteInd] = (byte)((bytes[curByteInd] << 1) | curBit);
 
                 tmpPointer++;
                 if(tmpPointer >= size) {
@@ -354,10 +363,10 @@ public class BitStream {
         //System.out.println(Arrays.toString(bits));
 
         for(int i = 0; i < size; i++) {
-            result.append(bits[i] ? 1 : 0);
             if(i % DISPLAY_BLOCK_SIZE == 0 && i != 0) {
                 result.append(" ");
             }
+            result.append(bits[i] ? 1 : 0);
         }
 
         int missedBitsCount = DISPLAY_BLOCK_SIZE - (size % DISPLAY_BLOCK_SIZE);
