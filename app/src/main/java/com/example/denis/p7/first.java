@@ -1,18 +1,23 @@
 package com.example.denis.p7;
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 
 public class first extends AppCompatActivity implements View.OnClickListener {
     Button button;
     EditText eTcNickname;
-    final static String C_NICKNAME = "COMPANION_NICKNAME";
+    final static String codingTypeString = "CODING_TYPE";
+    final static String compressionTypeString = "COMPRESSION_TYPE";
     final static String TAG = "MY_TAG";
+    Spinner codingSpinner;
+    Spinner compressionSpinner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,7 +28,15 @@ public class first extends AppCompatActivity implements View.OnClickListener {
         button = (Button) findViewById(R.id.button);
         button.setOnClickListener(this);
 
-        eTcNickname = (EditText) findViewById(R.id.eTcNickname);
+        codingSpinner = (Spinner) findViewById(R.id.codingSpinner);
+        compressionSpinner = (Spinner) findViewById(R.id.compressionSpinner);
+
+        codingSpinner.setAdapter(new ArrayAdapter<String>(this,
+                android.R.layout.simple_spinner_dropdown_item, new String[]{getString(R.string.coding1), getString(R.string.coding1), getString(R.string.coding1)}));
+        compressionSpinner.setAdapter(new ArrayAdapter<String>(this,
+                android.R.layout.simple_spinner_dropdown_item, new String[]{getString(R.string.compression1), getString(R.string.compression2), getString(R.string.compression3)}));
+
+
     }
 
     @Override
@@ -31,7 +44,8 @@ public class first extends AppCompatActivity implements View.OnClickListener {
         switch (v.getId()) {
             case R.id.button:
                 Intent intent = new Intent(this, second.class);
-                intent.putExtra(C_NICKNAME, eTcNickname.getText().toString());
+                intent.putExtra(codingTypeString, codingSpinner.getSelectedItem().toString());
+                intent.putExtra(compressionTypeString, compressionSpinner.getSelectedItem().toString());
                 startActivity(intent);
                 break;
         }

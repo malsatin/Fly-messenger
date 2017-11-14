@@ -8,26 +8,27 @@
 
     <android.support.constraint.Guideline
         android:id="@+id/line_1"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.2"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.2" />
+
     <android.support.constraint.Guideline
         android:id="@+id/line_2"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.8"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.8" />
+
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHeight_default="wrap"
         app:layout_constraintLeft_toLeftOf="@id/line_1"
         app:layout_constraintRight_toRightOf="@id/line_2"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
->
+        app:layout_constraintTop_toTopOf="parent">
 
         <android.support.design.widget.TextInputLayout
             android:layout_width="match_parent"
@@ -38,57 +39,34 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/yNickname"
-                android:textSize="@dimen/bigText"/>
+                android:textSize="@dimen/bigText" />
 
         </android.support.design.widget.TextInputLayout>
 
-        <android.support.design.widget.TextInputLayout
+
+        <android.support.v7.widget.AppCompatSpinner
+            android:id="@+id/codingSpinner"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:hint="@string/hintCoding"
+            android:textSize="@dimen/bigText" />
 
-            <EditText
-                android:id="@+id/eTcNickname"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/cNickname"
-                android:textSize="@dimen/bigText"/>
-
-        </android.support.design.widget.TextInputLayout>
-
-        <android.support.design.widget.TextInputLayout
+        <android.support.v7.widget.AppCompatSpinner
+            android:id="@+id/compressionSpinner"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/bigText" />
 
-            <EditText
-                android:id="@+id/eTCoding"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/hintCoding"
-                android:textSize="@dimen/bigText"/>
-
-            <android.support.design.widget.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-                <EditText
-                    android:id="@+id/eTCompression"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="@string/hintCompression"
-                    android:textSize="@dimen/bigText"/>
-
-            </android.support.design.widget.TextInputLayout>
-        </android.support.design.widget.TextInputLayout>
 
         <Button
             android:id="@+id/button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/startChatting"
-            android:textSize="@dimen/bigText"
             android:background="@color/colorPrimary"
-            android:textColor="@color/yait"/>
+            android:text="@string/startChatting"
+            android:textColor="@color/yait"
+            android:textSize="@dimen/bigText" />
 
     </LinearLayout>
 
