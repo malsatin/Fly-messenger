@@ -50,7 +50,7 @@ public class ByteHelper {
      *
      * @param path Path to the source file
      * @return Sequence of bytes out of the specified file
-     * @throws IOException File not found (wrong path)
+     * @throws IOException         File not found (wrong path)
      * @throws FileTooBigException If file size is greater that MAX_FILE_SIZE
      */
     public static byte[] readBytesFromFile(String path) throws IOException, FileTooBigException {
@@ -73,6 +73,7 @@ public class ByteHelper {
                     ios.close();
                 }
             } catch (IOException e) {
+                e.printStackTrace();
             }
         }
 
@@ -86,7 +87,7 @@ public class ByteHelper {
      * @param sequence Sequence of bytes to write into file
      * @param path     Path to the destination file
      * @throws FileNotFoundException Path is wrong or some other error has occurred
-     * @throws IOException If some exception occurred while writing to file
+     * @throws IOException           If some exception occurred while writing to file
      */
     public static void writeBytesToFile(byte[] sequence, String path) throws IOException {
         FileOutputStream fos = new FileOutputStream(path);

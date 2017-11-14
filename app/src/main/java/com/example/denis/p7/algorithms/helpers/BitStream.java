@@ -2,7 +2,6 @@ package com.example.denis.p7.algorithms.helpers;
 
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * BitStream makes work with bits simpler.

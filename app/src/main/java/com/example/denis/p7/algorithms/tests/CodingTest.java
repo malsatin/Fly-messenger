@@ -1,5 +1,8 @@
-package com.example.denis.p7.algorithms.coding;
+package com.example.denis.p7.algorithms.tests;
 
+import com.example.denis.p7.algorithms.coding.HammingCode;
+import com.example.denis.p7.algorithms.coding.ParityBit;
+import com.example.denis.p7.algorithms.coding.RepetitionCode;
 import com.example.denis.p7.algorithms.exceptions.DecodingException;
 import com.example.denis.p7.algorithms.exceptions.FileTooBigException;
 import com.example.denis.p7.algorithms.helpers.ByteHelper;
@@ -8,7 +11,7 @@ import com.example.denis.p7.algorithms.interfaces.ICoder;
 
 import java.io.IOException;
 
-public class Main {
+public class CodingTest {
     private static final double BIT_FLIP_PROB = 0.005;
     private static final String IN_FILE_NAME = "input.txt";
 
