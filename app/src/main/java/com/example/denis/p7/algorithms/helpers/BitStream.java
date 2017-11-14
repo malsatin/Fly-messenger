@@ -2,6 +2,7 @@ package com.example.denis.p7.algorithms.helpers;
 
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * BitStream makes work with bits simpler.
@@ -96,7 +97,7 @@ public class BitStream {
      * @param bitsCount Number of bits to read
      * @return Array of boolean means of {@code bitsCount} next succeed bits in a stream
      */
-    public boolean[] readAsBool(int bitsCount) {
+    public boolean[] readBits(int bitsCount) {
         if(bitsCount < 1) {
             throw new InvalidParameterException("Can't read non-positive number of bits");
         }
@@ -107,11 +108,7 @@ public class BitStream {
         boolean[] result = new boolean[resCount];
 
         for(int i = 0; i < resCount; i++) {
-            long curLong = storage.get(pointer / LONG_SIZE);
-            int indexInLong = pointer % LONG_SIZE;
-
-            result[i] = getBit(curLong, indexInLong);
-            pointer++;
+            result[i] = readBit();
         }
 
         return result;
@@ -126,7 +123,7 @@ public class BitStream {
      */
     public boolean[] readUnsafe(int bitsCount) {
         boolean[] bits = new boolean[bitsCount];
-        boolean[] safeBits = readAsBool(bitsCount);
+        boolean[] safeBits = readBits(bitsCount);
 
         for(int i = 0, l = safeBits.length; i < l; i++) {
             bits[i] = safeBits[i];
@@ -139,18 +136,26 @@ public class BitStream {
     }
 
     private long readNumber(int bitsCount) {
-        if(bitsCount > 64) {
+        if(bitsCount > LONG_SIZE) {
             throw new InvalidParameterException("Can't return more than 64 bits");
         }
 
         long result = 0;
-        boolean[] bits = readAsBool(bitsCount);
+        boolean[] bits = readBits(bitsCount);
 
         for(boolean bit : bits) {
-            result = (result << 1) & (bit ? 1 : 0);
+            // Shifts number, clears lsb and sets it to appropriate bit
+            result = (result << 1) & ~(1) | (bit ? 1 : 0);
         }
 
         return result;
+    }
+
+    /**
+     * @return Next byte from the stream
+     */
+    public byte readByte() {
+        return (byte)readNumber(BYTE_SIZE);
     }
 
     /**
@@ -198,6 +203,19 @@ public class BitStream {
     }
 
     /**
+     * Adds arbitrary number of bits from the right of `data`
+     * Example: 6bits from 100101101 is 101101
+     *
+     * @param data Container of bits
+     * @param size Count of bits to add
+     */
+    public void addNumber(long data, int size) {
+        for(int i = LONG_SIZE - 1; i >= LONG_SIZE - size; i--) {
+            addBit(((data >> i) & 1) == 1);
+        }
+    }
+
+    /**
      * @param data Byte to append at the end of the stream
      */
     public void addByte(byte data) {
@@ -228,7 +246,7 @@ public class BitStream {
      * @param data Character to append at the end of the stream
      */
     public void addChar(char data) {
-        addInt((int)data);
+        addByte((byte)data);
     }
 
     /**
@@ -260,10 +278,17 @@ public class BitStream {
     }
 
     /**
-     * @return Is the steam doesn't contain any more bits
+     * @return Does stream contain any data at all
      */
     public boolean isEmpty() {
-        return bitsRemain() == 0;
+        return size() == 0;
+    }
+
+    /**
+     * @return Does the steam contain any more unread bits
+     */
+    public boolean hasBits() {
+        return bitsRemain() != 0;
     }
 
     /**
@@ -303,8 +328,8 @@ public class BitStream {
         for(int i = 0; i < storage.size(); i++) {
             for(int j = 0; j < LONG_SIZE; j++) {
                 int curByteInd = tmpPointer / BYTE_SIZE;
-                byte curBit = (byte)(storage.get(i) >> j & 1);
-                bytes[curByteInd] = (byte)((bytes[curByteInd] << 1) + curBit);
+                byte curBit = (byte)(getBit(storage.get(i), j) ? 1 : 0);
+                bytes[curByteInd] = (byte)((bytes[curByteInd] << 1) | curBit);
 
                 tmpPointer++;
                 if(tmpPointer >= size) {
@@ -347,10 +372,10 @@ public class BitStream {
         //System.out.println(Arrays.toString(bits));
 
         for(int i = 0; i < size; i++) {
-            result.append(bits[i] ? 1 : 0);
             if(i % DISPLAY_BLOCK_SIZE == 0 && i != 0) {
                 result.append(" ");
             }
+            result.append(bits[i] ? 1 : 0);
         }
 
         int missedBitsCount = DISPLAY_BLOCK_SIZE - (size % DISPLAY_BLOCK_SIZE);
