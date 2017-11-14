@@ -1,4 +1,4 @@
-package com.example.denis.p7;
+package com.example.denis.p7.activities;
 
 import android.content.Context;
 import android.content.Intent;
@@ -27,6 +27,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.denis.p7.R;
+import com.example.denis.p7.TCPClient;
+import com.example.denis.p7.activities.first;
 import com.example.denis.p7.algorithms.helpers.ByteHelper;
 
 import java.io.IOException;
