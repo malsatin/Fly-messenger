@@ -1,9 +1,11 @@
 package com.example.denis.p7;
 
-import java.io.*;
-import java.math.BigInteger;
-import java.net.*;
 import org.apache.commons.io.IOUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigInteger;
+import java.net.Socket;
 
 class TCPClient {
     String hostname;
@@ -35,8 +37,8 @@ class TCPClient {
      *         "getMessages().length == 0"), in case of connection error returns
      *         null.
      */
-    public byte[][] getMessages(int alreadyHaveMessages) {
-        try {
+    public byte[][] getMessages(int alreadyHaveMessages) throws IOException {
+
             // open new socket
             Socket s = new Socket(hostname, port);
             // write data to server
@@ -68,10 +70,10 @@ class TCPClient {
             // close connection
             s.close();
             return result;
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            return null;
-        }
+//        } catch (Exception e) {
+//            System.out.println(e.getMessage());
+//            return null;
+//        }
     }
 
     /**
@@ -83,8 +85,8 @@ class TCPClient {
      *         probably size limit exceeded which is ~800MB), 2:(received damaged
      *         message), 3:(connection with server failed)
      */
-    public int sendMessage(byte[] data) {
-        try {
+    public int sendMessage(byte[] data) throws IOException {
+       // try {
             // open new socket
             Socket s = new Socket(hostname, port);
             // write data to server
@@ -96,9 +98,9 @@ class TCPClient {
             // close connection and return result
             s.close();
             return new BigInteger(error).intValue();
-        } catch (Exception e) {
-            return 3;
-        }
+//        } catch (Exception e) {
+//            return 3;
+//        }
     }
 
     /**

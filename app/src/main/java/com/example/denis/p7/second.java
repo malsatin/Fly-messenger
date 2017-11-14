@@ -25,8 +25,11 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.denis.p7.algorithms.helpers.ByteHelper;
+
+import java.io.IOException;
 
 public class second extends AppCompatActivity implements View.OnClickListener, PopupMenu.OnMenuItemClickListener {
     ActionBar ab;
@@ -44,6 +47,8 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
     String uri;
     int k = 0;
     TCPClient client;
+    String ip="138.197.176.233";
+    byte[][] result;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +56,6 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         setContentView(R.layout.activity_second);
         Log.d(first.TAG, "second.class onCreate");
 
-        client = new TCPClient("localhost", 3128);
 
         // my_child_toolbar is defined in the layout file
         Toolbar myChildToolbar =
@@ -63,7 +67,10 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         ab.setDisplayHomeAsUpEnabled(true);
         // ab.setBackgroundDrawable(getResources().getDrawable(R.drawable.bar));
         intent = getIntent();
-        ab.setTitle(intent.getStringExtra(first.C_NICKNAME));
+        ab.setTitle(R.string.chatting);
+
+        //ip=intent.getStringExtra(first.C_NICKNAME);
+        client = new TCPClient(ip, 3128);
 
 
         lLscroll = (LinearLayout) findViewById(R.id.llscroll);
@@ -125,22 +132,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
             case R.id.fullInfo:
                 return true;
             case R.id.clear:
-                // Get messages
-                byte[][] result = client.getMessages(0);
 
-                LinearLayout msglL = new LinearLayout(this);
-                msgTV = new TextView(this);
-
-                layoutParams.setMargins(5, 5, 5, 5);
-                msglL.setLayoutParams(layoutParams);
-                layoutParams.setMargins(45, 20, 30, 0);
-                msgTV.setLayoutParams(layoutParams);
-
-                msgTV.setText(ByteHelper.getStringFromBytes(result[0]).toString());
-                msglL.setBackgroundResource(R.drawable.msg_in);
-
-                msglL.addView(msgTV);
-                lLscroll.addView(msglL);
 
                 return true;
             default:
@@ -156,7 +148,37 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
 
                 byte[] bytes1=ByteHelper.getBytesFromString(editText.getText().toString());
                 // Send bytes to server
-                client.sendMessage(bytes1);
+                try {
+                    client.sendMessage(bytes1);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Toast.makeText(this,"not geeeeeet",Toast.LENGTH_SHORT);
+
+                }
+
+
+                // Get messages
+                try {
+                    result = client.getMessages(0);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Toast.makeText(this,"not geeeeeet",Toast.LENGTH_SHORT);
+                }
+
+                LinearLayout msglL = new LinearLayout(this);
+                msgTV = new TextView(this);
+
+                layoutParams.setMargins(5, 5, 5, 5);
+                msglL.setLayoutParams(layoutParams);
+                layoutParams.setMargins(45, 20, 30, 0);
+                msgTV.setLayoutParams(layoutParams);
+
+                msgTV.setText(ByteHelper.getStringFromBytes(result[0]).toString());
+                msglL.setBackgroundResource(R.drawable.msg_in);
+
+                msglL.addView(msgTV);
+                lLscroll.addView(msglL);
+
                 Log.d(first.TAG, "is sended   ");
 
                 imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
