@@ -13,6 +13,7 @@
         android:theme="@style/AppTheme">
 
         <activity
+            android:configChanges="orientation|screenSize"
             android:name=".activities.first"
             android:launchMode="singleTask"
             android:theme="@style/AppTheme.NoActionBar"
@@ -25,11 +26,13 @@
         </activity>
 
         <activity
+            android:configChanges="orientation|screenSize"
             android:name=".activities.second"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="stateHidden"></activity>
 
-    </application>
+    </application
+>
 
 </manifest>

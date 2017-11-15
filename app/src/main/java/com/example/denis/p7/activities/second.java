@@ -2,8 +2,10 @@ package com.example.denis.p7.activities;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
@@ -14,44 +16,37 @@ import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.MenuInflater;
-import android.view.View;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.ViewGroup;
+import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.denis.p7.R;
 import com.example.denis.p7.TCPClient;
-import com.example.denis.p7.activities.first;
 import com.example.denis.p7.algorithms.helpers.ByteHelper;
 
 import java.io.IOException;
 
 public class second extends AppCompatActivity implements View.OnClickListener, PopupMenu.OnMenuItemClickListener {
     ActionBar ab;
-    FloatingActionButton fabAttach;
-    FloatingActionButton fabSend;
+    FloatingActionButton fabAttach,fabSend;
     EditText editText;
-    LinearLayout lLscroll;
-    LinearLayout.LayoutParams layoutParams;
+    LinearLayout scrollLL,msgTextLL,msgImageLL;
+    LinearLayout.LayoutParams msgTextLParamsLL,msgImageLParamsLL,msgLParamsTV,msgLParamsIV;
     TextView msgTV;
-    ImageView iV;
+    ImageView msgIV;
     InputMethodManager imm;
     Intent intent;
-    final int REQUEST_CODE_IMAGE = 1;
-    final int REQUEST_CODE_AUDIO = 2;
-    String uri;
-    int k = 0;
+    final int REQUEST_CODE_IMAGE = 1, REQUEST_CODE_AUDIO = 2;
+    String uri,ip = "138.197.176.233";
     TCPClient client;
-    String ip="138.197.176.233";
     byte[][] result;
+    int k = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,11 +70,15 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         //ip=intent.getStringExtra(first.C_NICKNAME);
         client = new TCPClient(ip, 3128);
 
-
-        lLscroll = (LinearLayout) findViewById(R.id.llscroll);
-        layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        layoutParams.gravity = Gravity.LEFT | Gravity.BOTTOM;
-
+        scrollLL=(LinearLayout)findViewById(R.id.scrollLL);
+        msgTextLL=(LinearLayout)findViewById(R.id.msgTextLL);
+        msgTV=(TextView)findViewById(R.id.msgTV);
+        msgImageLL=(LinearLayout)findViewById(R.id.msgImageLL);
+        msgIV=(ImageView)findViewById(R.id.msgIV);
+        msgTextLParamsLL = (LinearLayout.LayoutParams)msgTextLL.getLayoutParams();
+        msgLParamsTV = (LinearLayout.LayoutParams)msgTV.getLayoutParams();
+        msgImageLParamsLL = (LinearLayout.LayoutParams)msgImageLL.getLayoutParams();
+        msgLParamsIV = (LinearLayout.LayoutParams)msgIV.getLayoutParams();
 
         editText = (EditText) findViewById(R.id.editText);
         editText.addTextChangedListener(new TextWatcher() {
@@ -135,8 +134,6 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
             case R.id.fullInfo:
                 return true;
             case R.id.clear:
-
-
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -149,38 +146,37 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         switch (v.getId()) {
             case R.id.fabSend:
 
-                byte[] bytes1=ByteHelper.getBytesFromString(editText.getText().toString());
+                byte[] bytes1 = ByteHelper.getBytesFromString(editText.getText().toString());
                 // Send bytes to server
-                try {
-                    client.sendMessage(bytes1);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    Toast.makeText(this,"not geeeeeet",Toast.LENGTH_SHORT);
+//                try {
+//                    client.sendMessage(bytes1);
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                    Toast.makeText(this, "not geeeeeet", Toast.LENGTH_SHORT);
+//
+//                }
+//
+//
+//                // Get messages
+//                try {
+//                    result = client.getMessages(0);
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                    Toast.makeText(this, "not geeeeeet", Toast.LENGTH_SHORT);
+//                }
 
-                }
-
-
-                // Get messages
-                try {
-                    result = client.getMessages(0);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    Toast.makeText(this,"not geeeeeet",Toast.LENGTH_SHORT);
-                }
-
-                LinearLayout msglL = new LinearLayout(this);
+                msgTextLL = new LinearLayout(this);
+                msgTextLL.setBackgroundResource(R.drawable.msg_in);
                 msgTV = new TextView(this);
 
-                layoutParams.setMargins(5, 5, 5, 5);
-                msglL.setLayoutParams(layoutParams);
-                layoutParams.setMargins(45, 20, 30, 0);
-                msgTV.setLayoutParams(layoutParams);
+                msgTextLL.setLayoutParams(msgTextLParamsLL);
+                msgTV.setLayoutParams(msgLParamsTV);
 
-                msgTV.setText(ByteHelper.getStringFromBytes(result[0]).toString());
-                msglL.setBackgroundResource(R.drawable.msg_in);
+              //  msgTV.setText(ByteHelper.getStringFromBytes(result[0]).toString());
+                msgTV.setText("SDFsdf");
 
-                msglL.addView(msgTV);
-                lLscroll.addView(msglL);
+                msgTextLL.addView(msgTV);
+                scrollLL.addView(msgTextLL);
 
                 Log.d(first.TAG, "is sended   ");
 
@@ -229,6 +225,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         return false;
     }
 
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -236,19 +233,31 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         if (resultCode == RESULT_OK) {
             switch (requestCode) {
                 case REQUEST_CODE_IMAGE:
-                    LinearLayout lLmsg = new LinearLayout(this);
                     uri = data.getDataString();
-                    iV = new ImageView(this);
-                    layoutParams.setMargins(5, 5, 5, 5);
-                    lLmsg.setLayoutParams(layoutParams);
-                    iV.setLayoutParams(layoutParams);
-                    lLmsg.setBackgroundResource(R.drawable.msg_photo);
-                    iV.setImageURI(Uri.parse(uri));
-                    iV.setContentDescription(uri);
-                    iV.setOnClickListener(onClickListenerIV);
-                    // linearLayout.text
-                    lLmsg.addView(iV);
-                    lLscroll.addView(lLmsg);
+                    msgImageLL = new LinearLayout(this);
+                    msgImageLL.setBackgroundResource(R.drawable.msg_photo);
+                    msgIV = new ImageView(this);
+                    msgImageLL.setLayoutParams(msgImageLParamsLL);
+                    msgIV.setLayoutParams(msgLParamsIV);
+                   // iV.setImageURI(Uri.parse(uri));
+                    msgIV.setContentDescription(uri);
+                    msgIV.setOnClickListener(onClickListenerIV);
+
+//                    // linearLayout.text
+
+                    Bitmap bitmap = null;
+                    try {
+                        bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), Uri.parse(uri));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    //bitmap.setConfig(Bitmap.Config.ARGB_4444);
+//                    bitmap.setHeight(getWindowManager().getDefaultDisplay().getHeight()/2);
+//                    bitmap.setWidth(getWindowManager().getDefaultDisplay().getWidth()/2);
+                    msgIV.setImageBitmap(bitmap);
+
+                    msgImageLL.addView(msgIV);
+                    scrollLL.addView(msgImageLL);
                     break;
 
                 case REQUEST_CODE_AUDIO:
@@ -257,8 +266,8 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                     msgTV.setText(data.toString());
                     msgTV.setContentDescription(uri);
                     msgTV.setOnClickListener(onClickListenerAV);
-                    msgTV.setLayoutParams(layoutParams);
-                    lLscroll.addView(msgTV);
+                    msgTV.setLayoutParams(msgTextLParamsLL);
+                    scrollLL.addView(msgTV);
                     break;
             }
         }

@@ -34,10 +34,9 @@ public class first extends AppCompatActivity implements View.OnClickListener {
         compressionSpinner = (Spinner) findViewById(R.id.compressionSpinner);
 
         codingSpinner.setAdapter(new ArrayAdapter<String>(this,
-                android.R.layout.simple_spinner_dropdown_item, new String[]{getString(R.string.coding1), getString(R.string.coding1), getString(R.string.coding1)}));
+                android.R.layout.simple_spinner_dropdown_item, new String[]{getString(R.string.coding1), getString(R.string.coding2), getString(R.string.coding3)}));
         compressionSpinner.setAdapter(new ArrayAdapter<String>(this,
                 android.R.layout.simple_spinner_dropdown_item, new String[]{getString(R.string.compression1), getString(R.string.compression2), getString(R.string.compression3)}));
-
 
     }
 

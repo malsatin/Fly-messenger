@@ -65,31 +65,67 @@
     <ScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:background="@color/fon"
         app:layout_constraintBottom_toTopOf="@id/cl2"
         app:layout_constraintHeight_default="spread"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintWidth_default="spread"
-        android:background="@color/colorPrimaryDark">
+        app:layout_constraintWidth_default="spread">
+
 
         <LinearLayout
-            android:id="@+id/llscroll"
+            android:id="@+id/scrollLL"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
 
-
-            <TextView
-                android:id="@+id/textView"
-                android:layout_width="match_parent"
+            <LinearLayout
+                android:id="@+id/msgTextLL"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/example"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                android:clickable="true"/>
+                android:layout_gravity="bottom"
+                android:layout_marginBottom="@dimen/marginSemiIntervalMsgLL"
+                android:layout_marginLeft="@dimen/marginFromMsgLL"
+                android:layout_marginRight="@dimen/marginToMsgLL"
+                android:layout_marginTop="@dimen/marginSemiIntervalMsgLL"
+                android:background="@drawable/msg_in"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/msgTV"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/marginLostMsgTV"
+                    android:layout_marginLeft="@dimen/marginLeftMsgTV"
+                    android:layout_marginRight="@dimen/marginLostMsgTV"
+                    android:layout_marginTop="@dimen/marginLostMsgTV"
+                    android:clickable="true"
+                    android:text="@string/example" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/msgImageLL"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:layout_marginBottom="@dimen/marginSemiIntervalMsgLL"
+                android:layout_marginLeft="@dimen/marginFromMsgLL"
+                android:layout_marginRight="@dimen/marginToMsgLL"
+                android:layout_marginTop="@dimen/marginSemiIntervalMsgLL"
+                android:background="@drawable/msg_photo"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:id="@+id/msgIV"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/marginLostMsgTV"
+                    android:background="@drawable/fon"
+                    android:clickable="true" />
+            </LinearLayout>
+
         </LinearLayout>
     </ScrollView>
 
