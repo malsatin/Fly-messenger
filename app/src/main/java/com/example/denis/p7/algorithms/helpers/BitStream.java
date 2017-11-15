@@ -17,9 +17,9 @@ public class BitStream {
     /**
      * Sizes int bits of some primitive types
      */
-    private final int BYTE_SIZE = 8;
-    private final int INT_SIZE = 32;
-    private final int LONG_SIZE = 64;
+    public static final int BYTE_SIZE = 8;
+    public static final int INT_SIZE = 32;
+    public static final int LONG_SIZE = 64;
 
     /**
      * How many bits to display in a block in toString method.
@@ -135,7 +135,7 @@ public class BitStream {
         return bits;
     }
 
-    private long readNumber(int bitsCount) {
+    public long readNumber(int bitsCount) {
         if(bitsCount > LONG_SIZE) {
             throw new InvalidParameterException("Can't return more than 64 bits");
         }
@@ -210,7 +210,7 @@ public class BitStream {
      * @param size Count of bits to add
      */
     public void addNumber(long data, int size) {
-        for(int i = LONG_SIZE - 1; i >= LONG_SIZE - size; i--) {
+        for(int i = size - 1; i >= 0; i--) {
             addBit(((data >> i) & 1) == 1);
         }
     }
@@ -256,11 +256,16 @@ public class BitStream {
      * @param bitsToSkip Number of bits to skip in the stream
      */
     public void skip(int bitsToSkip) {
-        pointer += bitsToSkip;
+        pointer = Math.min(pointer + bitsToSkip, size);
+    }
 
-        if(pointer > size) {
-            pointer = size;
-        }
+    /**
+     * Moves pointer in the stream back for some number of bits
+     *
+     * @param bitsToMove Number of bits to move back in the stream
+     */
+    public void revert(int bitsToMove) {
+        pointer = Math.max(pointer - bitsToMove, 0);
     }
 
     /**
@@ -319,7 +324,8 @@ public class BitStream {
      */
     public byte[] toByteArray() {
         int bytesCount = size / BYTE_SIZE;
-        if(size % BYTE_SIZE != 0) {
+        int bitOffset = size % BYTE_SIZE;
+        if(bitOffset != 0) {
             bytesCount += 1;
         }
 
@@ -337,6 +343,9 @@ public class BitStream {
                 }
             }
         }
+        if(bitOffset != 0) {
+            bytes[bytesCount - 1] <<= BYTE_SIZE - bitOffset;
+        }
 
         return bytes;
     }
@@ -344,7 +353,7 @@ public class BitStream {
     /**
      * @return Array of bits in boolean form (from stream start to the end)
      */
-    private boolean[] toBitArray() {
+    public boolean[] toBitArray() {
         boolean[] bits = new boolean[size];
 
         int tmpPointer = 0;
