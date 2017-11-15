@@ -3,7 +3,7 @@ package com.example.denis.p7.algorithms.compression;
 import com.example.denis.p7.algorithms.exceptions.DecompressionException;
 import com.example.denis.p7.algorithms.helpers.BitStream;
 import com.example.denis.p7.algorithms.interfaces.ICompressor;
-import org.apache.commons.compress.utils.BitInputStream;
+//import org.apache.commons.compress.utils.BitInputStream;
 
 /**
  * LZ77 compression algorithm

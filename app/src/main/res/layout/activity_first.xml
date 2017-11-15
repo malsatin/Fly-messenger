@@ -36,10 +36,12 @@
 
             <EditText
                 android:id="@+id/eTyNickname"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:hint="@string/yNickname"
-                android:textSize="@dimen/bigText" />
+                android:textSize="@dimen/bigText"
+                android:ems="10"
+                android:inputType="textPersonName"/>
 
         </android.support.design.widget.TextInputLayout>
 

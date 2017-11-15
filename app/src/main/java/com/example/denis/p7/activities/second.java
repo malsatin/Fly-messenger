@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
@@ -25,6 +26,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.denis.p7.R;
 import com.example.denis.p7.TCPClient;
@@ -34,26 +36,28 @@ import java.io.IOException;
 
 public class second extends AppCompatActivity implements View.OnClickListener, PopupMenu.OnMenuItemClickListener {
     ActionBar ab;
-    FloatingActionButton fabAttach,fabSend;
+    FloatingActionButton fabAttach, fabSend;
     EditText editText;
-    LinearLayout scrollLL,msgTextLL,msgImageLL;
-    LinearLayout.LayoutParams msgTextLParamsLL,msgImageLParamsLL,msgLParamsTV,msgLParamsIV;
+    LinearLayout scrollLL, msgTextLL, msgImageLL;
+    LinearLayout.LayoutParams msgTextLParamsLL, msgImageLParamsLL, msgLParamsTV, msgLParamsIV;
     TextView msgTV;
     ImageView msgIV;
     InputMethodManager imm;
     Intent intent;
+    SendMsg sendMsg;
+    GetMsgs getMsgs;
     final int REQUEST_CODE_IMAGE = 1, REQUEST_CODE_AUDIO = 2;
-    String uri,ip = "138.197.176.233";
+    String uri, ip = "138.197.176.233";
     TCPClient client;
-    byte[][] result;
-    int k = 0;
+    byte[] bytes;
+    String s;
+    int k = 0, port=3129;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_second);
         Log.d(first.TAG, "second.class onCreate");
-
 
         // my_child_toolbar is defined in the layout file
         Toolbar myChildToolbar =
@@ -67,18 +71,17 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         intent = getIntent();
         ab.setTitle(R.string.chatting);
 
-        //ip=intent.getStringExtra(first.C_NICKNAME);
-        client = new TCPClient(ip, 3128);
+        client = new TCPClient(ip, port);
 
-        scrollLL=(LinearLayout)findViewById(R.id.scrollLL);
-        msgTextLL=(LinearLayout)findViewById(R.id.msgTextLL);
-        msgTV=(TextView)findViewById(R.id.msgTV);
-        msgImageLL=(LinearLayout)findViewById(R.id.msgImageLL);
-        msgIV=(ImageView)findViewById(R.id.msgIV);
-        msgTextLParamsLL = (LinearLayout.LayoutParams)msgTextLL.getLayoutParams();
-        msgLParamsTV = (LinearLayout.LayoutParams)msgTV.getLayoutParams();
-        msgImageLParamsLL = (LinearLayout.LayoutParams)msgImageLL.getLayoutParams();
-        msgLParamsIV = (LinearLayout.LayoutParams)msgIV.getLayoutParams();
+        scrollLL = (LinearLayout) findViewById(R.id.scrollLL);
+        msgTextLL = (LinearLayout) findViewById(R.id.msgTextLL);
+        msgTV = (TextView) findViewById(R.id.msgTV);
+        msgImageLL = (LinearLayout) findViewById(R.id.msgImageLL);
+        msgIV = (ImageView) findViewById(R.id.msgIV);
+        msgTextLParamsLL = (LinearLayout.LayoutParams) msgTextLL.getLayoutParams();
+        msgLParamsTV = (LinearLayout.LayoutParams) msgTV.getLayoutParams();
+        msgImageLParamsLL = (LinearLayout.LayoutParams) msgImageLL.getLayoutParams();
+        msgLParamsIV = (LinearLayout.LayoutParams) msgIV.getLayoutParams();
 
         editText = (EditText) findViewById(R.id.editText);
         editText.addTextChangedListener(new TextWatcher() {
@@ -134,6 +137,8 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
             case R.id.fullInfo:
                 return true;
             case R.id.clear:
+                getMsgs=new GetMsgs();
+                getMsgs.execute(k);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -145,45 +150,9 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.fabSend:
-
-                byte[] bytes1 = ByteHelper.getBytesFromString(editText.getText().toString());
-                // Send bytes to server
-//                try {
-//                    client.sendMessage(bytes1);
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                    Toast.makeText(this, "not geeeeeet", Toast.LENGTH_SHORT);
-//
-//                }
-//
-//
-//                // Get messages
-//                try {
-//                    result = client.getMessages(0);
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                    Toast.makeText(this, "not geeeeeet", Toast.LENGTH_SHORT);
-//                }
-
-                msgTextLL = new LinearLayout(this);
-                msgTextLL.setBackgroundResource(R.drawable.msg_in);
-                msgTV = new TextView(this);
-
-                msgTextLL.setLayoutParams(msgTextLParamsLL);
-                msgTV.setLayoutParams(msgLParamsTV);
-
-              //  msgTV.setText(ByteHelper.getStringFromBytes(result[0]).toString());
-                msgTV.setText("SDFsdf");
-
-                msgTextLL.addView(msgTV);
-                scrollLL.addView(msgTextLL);
-
-                Log.d(first.TAG, "is sended   ");
-
-                imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
-                editText.setText("");
-                fabAttach.setVisibility(View.VISIBLE);
-                fabSend.setVisibility(View.INVISIBLE);
+                sendMsg = new SendMsg();
+                bytes=ByteHelper.getBytesFromString(editText.getText().toString());
+                sendMsg.execute(bytes);
                 break;
         }
     }
@@ -239,7 +208,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                     msgIV = new ImageView(this);
                     msgImageLL.setLayoutParams(msgImageLParamsLL);
                     msgIV.setLayoutParams(msgLParamsIV);
-                   // iV.setImageURI(Uri.parse(uri));
+                    // iV.setImageURI(Uri.parse(uri));
                     msgIV.setContentDescription(uri);
                     msgIV.setOnClickListener(onClickListenerIV);
 
@@ -332,4 +301,88 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         super.onDestroy();
         Log.d(first.TAG, "second.class onDestroy");
     }
+
+    class SendMsg extends AsyncTask<byte[], Void, Integer> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Integer doInBackground(byte[]... bytes) {
+            int response = 4;
+
+            // Send bytes to server
+            try {
+                response = client.sendMessage(bytes[0]);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return response;
+        }
+
+        @Override
+        protected void onPostExecute(Integer response) {
+            super.onPostExecute(response);
+            switch (response) {
+                case 0:
+                    imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+                    editText.setText("");
+                    fabAttach.setVisibility(View.VISIBLE);
+                    fabSend.setVisibility(View.INVISIBLE);
+                    break;
+                case 1:
+                    Toast.makeText(second.this, "Internal database error, probably size limit exceeded which is ~800MB", Toast.LENGTH_SHORT).show();
+                    break;
+                case 2:
+                    Toast.makeText(second.this, "Received damaged message", Toast.LENGTH_SHORT).show();
+                    break;
+                case 3:
+                    Toast.makeText(second.this, "Connection with server failed", Toast.LENGTH_SHORT).show();
+                    break;
+                case 4:
+                    Toast.makeText(second.this, "Some exception", Toast.LENGTH_SHORT).show();
+                    break;
+            }
+        }
+    }
+
+    class GetMsgs extends AsyncTask<Integer, Void, byte[][]> {
+
+        @Override
+        protected byte[][] doInBackground(Integer... alreadyHaveMessages) {
+            byte[][] result=new byte[0][];
+            // Get messages
+            try {
+                result = client.getMessages(alreadyHaveMessages[0]);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return result;
+        }
+
+        @Override
+        protected void onPostExecute(byte[][] bytes) {
+            super.onPostExecute(bytes);
+            if(bytes[0]==null)return;
+            for(int i=0;i<bytes.length;i++){
+                msgTextLL = new LinearLayout(second.this);
+                msgTextLL.setBackgroundResource(R.drawable.msg_in);
+                msgTV = new TextView(second.this);
+
+                msgTextLL.setLayoutParams(msgTextLParamsLL);
+                msgTV.setLayoutParams(msgLParamsTV);
+
+                s=ByteHelper.getStringFromBytes(bytes[i]);
+                msgTV.setText(s);
+
+                msgTextLL.addView(msgTV);
+                scrollLL.addView(msgTextLL);
+                k++;
+            }
+        }
+    }
+
 }
+
