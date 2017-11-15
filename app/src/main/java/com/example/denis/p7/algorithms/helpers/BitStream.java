@@ -135,7 +135,7 @@ public class BitStream {
         return bits;
     }
 
-    private long readNumber(int bitsCount) {
+    public long readNumber(int bitsCount) {
         if(bitsCount > LONG_SIZE) {
             throw new InvalidParameterException("Can't return more than 64 bits");
         }
@@ -210,7 +210,7 @@ public class BitStream {
      * @param size Count of bits to add
      */
     public void addNumber(long data, int size) {
-        for(int i = LONG_SIZE - 1; i >= LONG_SIZE - size; i--) {
+        for(int i = size - 1; i >= 0; i--) {
             addBit(((data >> i) & 1) == 1);
         }
     }
@@ -353,7 +353,7 @@ public class BitStream {
     /**
      * @return Array of bits in boolean form (from stream start to the end)
      */
-    private boolean[] toBitArray() {
+    public boolean[] toBitArray() {
         boolean[] bits = new boolean[size];
 
         int tmpPointer = 0;
