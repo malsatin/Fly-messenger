@@ -30,10 +30,10 @@ public class RepetitionCode implements ICoder {
         int index = 0;
         BitSet set = BitSet.valueOf(sequence);
         BitSet answer = new BitSet();
-        for (int i = 0; i <sequence.length;i++){
+        for (int i = 0; i <set.length();i++){
             if(i%3==0){
-                if (answer.get(i)&answer.get(i+1)|answer.get(i+1)&answer.get(i+2)) answer.set(index++,true);
-                else set.set(index++,false);
+                if (set.get(i)&answer.get(i+1)|set.get(i+1)&set.get(i+2)) answer.set(index++,true);
+                else answer.set(index++,false);
             }
         }
         return answer.toByteArray();
