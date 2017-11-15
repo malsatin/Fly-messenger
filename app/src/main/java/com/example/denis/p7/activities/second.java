@@ -2,11 +2,12 @@ package com.example.denis.p7.activities;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
-import android.provider.MediaStore;
+import android.os.Environment;
+import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
@@ -30,7 +31,13 @@ import android.widget.Toast;
 
 import com.example.denis.p7.R;
 import com.example.denis.p7.TCPClient;
+import com.example.denis.p7.algorithms.coding.HammingCode;
+import com.example.denis.p7.algorithms.coding.ParityBit;
+import com.example.denis.p7.algorithms.coding.RepetitionCode;
+import com.example.denis.p7.algorithms.exceptions.FileTooBigException;
 import com.example.denis.p7.algorithms.helpers.ByteHelper;
+
+import org.apache.commons.io.output.ByteArrayOutputStream;
 
 import java.io.IOException;
 
@@ -50,8 +57,11 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
     String uri, ip = "138.197.176.233";
     TCPClient client;
     byte[] bytes;
+    byte[] nickname;
+    byte b;
     String s;
-    int k = 0, port=3129;
+    int k = 0, port = 3129;
+    byte codingType, compressionType, msgType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,8 +78,17 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         // Enable the Up button
         ab.setDisplayHomeAsUpEnabled(true);
         // ab.setBackgroundDrawable(getResources().getDrawable(R.drawable.bar));
-        intent = getIntent();
         ab.setTitle(R.string.chatting);
+
+        intent = getIntent();
+        codingType = (byte) intent.getIntExtra(first.codingTypeString, 5);
+        compressionType = (byte) intent.getIntExtra(first.compressionTypeString, 5);
+        bytes = ByteHelper.getBytesFromString(intent.getStringExtra(first.nickname));
+        byte space = ByteHelper.getBytesFromString(" ")[0];
+        nickname = new byte[20];
+        for (int i = 0; i < 20; i++) {
+            nickname[i] = (bytes.length > i) ? bytes[i] : space;
+        }
 
         client = new TCPClient(ip, port);
 
@@ -135,9 +154,11 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                 startActivity(intent);
                 return true;
             case R.id.fullInfo:
+                ClearHistory clearHistory=new ClearHistory();
+                clearHistory.execute();
                 return true;
             case R.id.clear:
-                getMsgs=new GetMsgs();
+                getMsgs = new GetMsgs();
                 getMsgs.execute(k);
                 return true;
             default:
@@ -151,7 +172,8 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         switch (v.getId()) {
             case R.id.fabSend:
                 sendMsg = new SendMsg();
-                bytes=ByteHelper.getBytesFromString(editText.getText().toString());
+                bytes = ByteHelper.getBytesFromString(editText.getText().toString());
+                msgType = (byte) 0;
                 sendMsg.execute(bytes);
                 break;
         }
@@ -203,30 +225,15 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
             switch (requestCode) {
                 case REQUEST_CODE_IMAGE:
                     uri = data.getDataString();
-                    msgImageLL = new LinearLayout(this);
-                    msgImageLL.setBackgroundResource(R.drawable.msg_photo);
-                    msgIV = new ImageView(this);
-                    msgImageLL.setLayoutParams(msgImageLParamsLL);
-                    msgIV.setLayoutParams(msgLParamsIV);
-                    // iV.setImageURI(Uri.parse(uri));
-                    msgIV.setContentDescription(uri);
-                    msgIV.setOnClickListener(onClickListenerIV);
-
-//                    // linearLayout.text
-
-                    Bitmap bitmap = null;
+                    sendMsg = new SendMsg();
+                    msgType = (byte) 1;
                     try {
-                        bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), Uri.parse(uri));
+                        sendMsg.execute(ByteHelper.readBytesFromFile(Uri.parse(uri).getPath()));
                     } catch (IOException e) {
                         e.printStackTrace();
+                    } catch (FileTooBigException e) {
+                        e.printStackTrace();
                     }
-                    //bitmap.setConfig(Bitmap.Config.ARGB_4444);
-//                    bitmap.setHeight(getWindowManager().getDefaultDisplay().getHeight()/2);
-//                    bitmap.setWidth(getWindowManager().getDefaultDisplay().getWidth()/2);
-                    msgIV.setImageBitmap(bitmap);
-
-                    msgImageLL.addView(msgIV);
-                    scrollLL.addView(msgImageLL);
                     break;
 
                 case REQUEST_CODE_AUDIO:
@@ -309,13 +316,49 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
             super.onPreExecute();
         }
 
+        @RequiresApi(api = Build.VERSION_CODES.KITKAT)
         @Override
         protected Integer doInBackground(byte[]... bytes) {
             int response = 4;
+            ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+            ByteArrayOutputStream codedStream = new ByteArrayOutputStream();
+            ByteArrayOutputStream compressedStream = new ByteArrayOutputStream();
+            outStream.write(msgType);
+            outStream.write(codingType);
+            outStream.write(compressionType);
+            try {
+                outStream.write(nickname);
+                switch (codingType) {
+                    case (byte) 0:
+                        codedStream.write((new HammingCode()).encodeByteString(bytes[0]));
+                        break;
+                    case (byte) 1:
+                        codedStream.write((new ParityBit()).encodeByteString(bytes[0]));
+                        break;
+                    case (byte) 2:
+                        codedStream.write((new RepetitionCode()).encodeByteString(bytes[0]));
+                        break;
+                }
+//                switch(compressionType){
+//                    case (byte)0:
+//                        compressedStream.write((new Huffman()).compressByteString(codedStream.toByteArray()));
+//                        break;
+//                    case (byte)1:
+//                        compressedStream.write((new LZ77()).compressByteString(codedStream.toByteArray()));
+//                        break;
+//                    case (byte)2:
+//                        compressedStream.write((new RLE()).compressByteString(codedStream.toByteArray()));
+//                        break;
+//                }
+                outStream.write(codedStream.toByteArray());//TODO replace coded on compressed
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            byte[] block = outStream.toByteArray();
 
             // Send bytes to server
             try {
-                response = client.sendMessage(bytes[0]);
+                response = client.sendMessage(block);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -352,7 +395,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
 
         @Override
         protected byte[][] doInBackground(Integer... alreadyHaveMessages) {
-            byte[][] result=new byte[0][];
+            byte[][] result = new byte[0][];
             // Get messages
             try {
                 result = client.getMessages(alreadyHaveMessages[0]);
@@ -362,24 +405,109 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
             return result;
         }
 
+        @RequiresApi(api = Build.VERSION_CODES.KITKAT)
         @Override
         protected void onPostExecute(byte[][] bytes) {
             super.onPostExecute(bytes);
-            if(bytes[0]==null)return;
-            for(int i=0;i<bytes.length;i++){
-                msgTextLL = new LinearLayout(second.this);
-                msgTextLL.setBackgroundResource(R.drawable.msg_in);
-                msgTV = new TextView(second.this);
+            if (bytes[0] == null) return;
+            ByteArrayOutputStream decodedStream;
+            ByteArrayOutputStream decompressedStream;
+            for (int i = 0; i < bytes.length; i++) {
+                decodedStream = new ByteArrayOutputStream();
+                decompressedStream = new ByteArrayOutputStream();
+                byte[] msg = new byte[bytes[i].length - 23];
+                System.arraycopy(bytes[i], 23, msg, 0, msg.length);
+//                switch (bytes[i][2]) {
+//                    case (byte) 0:
+//                        decompressedStream.write((new Huffman()).decompressByteString(msg));
+//                        break;
+//                    case (byte) 1:
+//                        decompressedStream.write((new LZ77()).decompressByteString(msg));
+//                        break;
+//                    case (byte) 2:
+//                        decompressedStream.write((new RLE()).decompressByteString(msg));
+//                        break;
+//                }
+                try {
+                    switch (bytes[i][1]) {
+                        case (byte) 0:
+                            decodedStream.write((new HammingCode()).decodeByteString(msg));//TODO replace msg
+                            break;
+                        case (byte) 1:
+                            decodedStream.write((new ParityBit()).decodeByteString(msg));//TODO replace msg
+                            break;
+                        case (byte) 2:
+                            decodedStream.write((new RepetitionCode()).decodeByteString(msg));//TODO replace msg
+                            break;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                switch (bytes[i][0]) {
+                    case (byte) 0:
+                        msgTextLL = new LinearLayout(second.this);
+                        msgTextLL.setBackgroundResource(R.drawable.msg_in);
+                        msgTV = new TextView(second.this);
 
-                msgTextLL.setLayoutParams(msgTextLParamsLL);
-                msgTV.setLayoutParams(msgLParamsTV);
+                        msgTextLL.setLayoutParams(msgTextLParamsLL);
+                        msgTV.setLayoutParams(msgLParamsTV);
 
-                s=ByteHelper.getStringFromBytes(bytes[i]);
-                msgTV.setText(s);
+                        s = ByteHelper.getStringFromBytes(decodedStream.toByteArray());
+                        msgTV.setText(s);
 
-                msgTextLL.addView(msgTV);
-                scrollLL.addView(msgTextLL);
+                        msgTextLL.addView(msgTV);
+                        scrollLL.addView(msgTextLL);
+                        break;
+                    case (byte) 1:
+                        msgImageLL = new LinearLayout(second.this);
+                        msgImageLL.setBackgroundResource(R.drawable.msg_photo);
+                        msgIV = new ImageView(second.this);
+
+                        msgImageLL.setLayoutParams(msgImageLParamsLL);
+                        msgIV.setLayoutParams(msgLParamsIV);
+
+                        String path = Environment.getDataDirectory().getPath();
+                        try {
+                            ByteHelper.writeBytesToFile(decodedStream.toByteArray(), path);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        // msgIV.setImageURI();
+                        msgIV.setContentDescription(uri);
+                        msgIV.setOnClickListener(onClickListenerIV);
+
+                        msgImageLL.addView(msgIV);
+                        scrollLL.addView(msgImageLL);
+                        break;
+                    case (byte) 2:
+                        break;
+                }
                 k++;
+            }
+        }
+    }
+
+    class ClearHistory extends AsyncTask<Void, Void, Integer> {
+
+        @Override
+        protected Integer doInBackground(Void... voids) {
+            int response = client.requestClear();
+            return response;
+        }
+
+        @Override
+        protected void onPostExecute(Integer response) {
+            super.onPostExecute(response);
+            switch (response) {
+                case 0:
+                    Toast.makeText(second.this, "Database is empty", Toast.LENGTH_SHORT).show();
+                    break;
+                case 1:
+                    Toast.makeText(second.this, "Internal database error", Toast.LENGTH_SHORT).show();
+                    break;
+                case 2:
+                    Toast.makeText(second.this, "Connection with server failed", Toast.LENGTH_SHORT).show();
+                    break;
             }
         }
     }
