@@ -1,6 +1,7 @@
 package com.example.denis.p7.algorithms.tests;
 
 import com.example.denis.p7.algorithms.compression.LZ77;
+import com.example.denis.p7.algorithms.helpers.BitStream;
 import com.example.denis.p7.algorithms.helpers.ByteHelper;
 
 import java.util.Arrays;
@@ -18,6 +19,7 @@ public class LZ77Test {
         byte[] in = ByteHelper.getBytesFromString("testй");
         byte[] out = algo.compressByteString(in);
 
+        System.out.println(new BitStream(out).toString());
         System.out.println(Arrays.toString(out) + " " + ByteHelper.getStringFromBytes(out));
         System.out.println("Input size: " + in.length + "; output size: " + out.length);
     }
