@@ -17,12 +17,12 @@ public class LZ77 implements ICompressor {
 
     /**
      * Shows, how many bytes we can look back to find such sequence
-     * Optimal to be a (power of 2) - 1
+     * Optimal to be a (power of 2) - 1. About 63-127 is a good variant
      */
-    private static final int WINDOW_SIZE = 31;
+    private static final int WINDOW_SIZE = 63;
     /**
      * Shows, how many bytes can there be in a single sequence
-     * Optimal to be a (power of 2) - 1
+     * Optimal to be a (power of 2) - 1. About 7-15 is a good variant
      * FRAME_SIZE can be greater than WINDOW_SIZE
      */
     private static final int FRAME_SIZE = 7;
@@ -68,8 +68,7 @@ public class LZ77 implements ICompressor {
                 }
 
                 output.addBit(1);
-                // todo пофиксить то, что сохраняется индекс, а не то, на сколько назад надос смотреть
-                output.addNumber(lastOccurrence + 1, lookbackBitSize);
+                output.addNumber(window.size() - lastOccurrence, lookbackBitSize);
                 output.addNumber(frame.size(), lengthBitSize);
             }
 
@@ -79,21 +78,52 @@ public class LZ77 implements ICompressor {
                 window = new LinkedList<>(window.subList(window.size() - WINDOW_SIZE, window.size()));
             }
         }
-        System.out.println(output.toString());
+        //System.out.println(output.toString());
 
         return output.toByteArray();
     }
 
     @Override
     public byte[] decompressByteString(byte[] sequence) throws DecompressionException {
-        // TODO: implement algorithm
-        return sequence.clone();
+        BitStream input = new BitStream(sequence);
+        BitStream output = new BitStream();
+
+        LinkedList<Byte> window = new LinkedList<>();
+        while(input.hasBits()) {
+            boolean newByte = !input.readBit();
+            byte[] bytesToAdd;
+
+            if(newByte) {
+                if(input.bitsRemain() < BitStream.BYTE_SIZE) {
+                    break;  // Now remains zero information, so we are stopping
+                }
+
+                bytesToAdd = new byte[] {input.readByte()};
+            } else {
+                if(input.bitsRemain() < lookbackBitSize + lengthBitSize) {
+                    throw new DecompressionException("Data seems to be corrupted");
+                }
+
+                int windowIndex = window.size() - (int)input.readNumber(lookbackBitSize);
+                int sequenceLength = (int)input.readNumber(lengthBitSize);
+
+                bytesToAdd = readFromWindow(window, windowIndex, sequenceLength);
+            }
+
+            for(int i = 0; i < bytesToAdd.length; i++) {
+                window.add(bytesToAdd[i]);
+            }
+            output.addByteArray(bytesToAdd);
+
+            if(window.size() > WINDOW_SIZE) {
+                window = new LinkedList<>(window.subList(window.size() - WINDOW_SIZE, window.size()));
+            }
+        }
+
+        return output.toByteArray();
     }
 
-    public static String debugOutput(byte[] stream) {
-        int lookbackBitSize = convertToBitCount(WINDOW_SIZE);
-        int lengthBitSize = convertToBitCount(FRAME_SIZE);
-
+    public String debugOutput(byte[] stream) {
         StringBuilder res = new StringBuilder();
         BitStream input = new BitStream(stream);
 
@@ -117,7 +147,7 @@ public class LZ77 implements ICompressor {
         return (int)(Math.log(length) / Math.log(2)) + 1;
     }
 
-    private int findInWindow(List window, List frame) {
+    private int findInWindow(List<Byte> window, List<Byte> frame) {
         int result = -1;
 
         // FIND INDEX OF LAST OCCURRECNCE OF frame IN window
@@ -139,6 +169,22 @@ public class LZ77 implements ICompressor {
 
             if(flag) {
                 result = i;
+            }
+        }
+
+        return result;
+    }
+
+    private byte[] readFromWindow(List<Byte> window, int startPoint, int length) {
+        byte[] result = new byte[length];
+        int windowPointer = startPoint;
+
+        for(int i = 0; i < length; i++) {
+            result[i] = window.get(windowPointer);
+
+            windowPointer++;
+            if(windowPointer >= window.size()) {
+                windowPointer = startPoint;
             }
         }
 
