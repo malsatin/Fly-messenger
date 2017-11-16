@@ -1,4 +1,6 @@
 package com.example.denis.p7.algorithms.compression;
+import com.example.denis.p7.algorithms.helpers.BitStream;
+
 import java.util.*;
 
 public class Huffman {
