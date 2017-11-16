@@ -2,16 +2,37 @@ package com.example.denis.p7.algorithms.compression;
 import java.util.*;
 
 public class Huffman {
-    public Byte[] compressByteString(Byte[] message) {
+    public byte[] compressByteString(byte[] message) {
         Map<Byte, Integer> map = countFrequency(message);
         Node root = buildTree(map);
         Map<Byte, String> codes = new HashMap<Byte, String>();
-        generateCode(root, codes, "");
-        Byte[] encoded = encodeMessage(codes, message);
+        if (root.isLeaf()) {
+            codes.put(root.getValue(), "0");
+        } else {
+            generateCode(root, codes, "");
+        }
+        byte[] encoded = encodeMessage(codes, message);
         return encoded;
     }
 
-    private Map<Byte, Integer> countFrequency(Byte[] message) {
+    public Byte[] decompressByteString(byte[] sequence, Node root) {
+        Byte[] message = new Byte[sequence.length];
+        for (int i = 0; i < sequence.length; i++) {
+            Node current = root;
+            while ((current.getLeft() != null)) {
+                if (sequence[i] != 0) {
+                    current = current.left;
+                } else {
+                    current = current.right;
+                }
+                i++;
+            }
+            message[i] = current.getValue();
+        }
+        return message;
+    }
+
+    private Map<Byte, Integer> countFrequency(byte[] message) {
         Map<Byte, Integer> map = new HashMap<>();
         for (int i = 0; i < message.length; i++) {
             if (map.containsKey(message[i])) {
@@ -41,20 +62,24 @@ public class Huffman {
 
     private static void generateCode(Node node, Map<Byte, String> map, String s) {
         if (node.isLeaf()) {
-            map.put(node.getValue(), "0");
+            map.put(node.getValue(), s);
             return;
         }
         generateCode(node.left, map, s + '0');
         generateCode(node.right, map, s + '1');
     }
 
-    private static Byte[] encodeMessage(Map<Byte, String> map, Byte[] message) {
-        Byte[] encoded = new Byte[message.length];
+    private static byte[] encodeMessage(Map<Byte, String> map, byte[] message) {
+
+        BitStream encoded = new BitStream();
 
         for (int i = 0; i < message.length; i++) {
-            encoded[i] = Byte.parseByte(map.get(message[i]));
+            String code = map.get(message[i]);
+            for (int j = 0; j < code.length(); j++) {
+                encoded.addBit(code.charAt(j) == '1' ? 1 : 0);
+            }
         }
-        return encoded;
+        return encoded.toByteArray();
     }
 
 }
