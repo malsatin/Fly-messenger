@@ -14,9 +14,10 @@ import com.example.denis.p7.R;
 
 public class first extends AppCompatActivity implements View.OnClickListener {
     Button button;
-    EditText eTcNickname;
+    EditText nicknameET;
     final static String codingTypeString = "CODING_TYPE";
     final static String compressionTypeString = "COMPRESSION_TYPE";
+    final static String nickname = "NICKNAME";
     final static String TAG = "MY_TAG";
     Spinner codingSpinner;
     Spinner compressionSpinner;
@@ -27,6 +28,7 @@ public class first extends AppCompatActivity implements View.OnClickListener {
         setContentView(R.layout.activity_first);
         Log.e(TAG, "first.class onCreate");
 
+        nicknameET=(EditText)findViewById(R.id.nicknameET);
         button = (Button) findViewById(R.id.button);
         button.setOnClickListener(this);
 
@@ -45,8 +47,9 @@ public class first extends AppCompatActivity implements View.OnClickListener {
         switch (v.getId()) {
             case R.id.button:
                 Intent intent = new Intent(this, second.class);
-                intent.putExtra(codingTypeString, codingSpinner.getSelectedItem().toString());
-                intent.putExtra(compressionTypeString, compressionSpinner.getSelectedItem().toString());
+                intent.putExtra(codingTypeString, codingSpinner.getSelectedItemPosition());
+                intent.putExtra(compressionTypeString, compressionSpinner.getSelectedItemPosition());
+                intent.putExtra(nickname, nicknameET.getText().toString());
                 startActivity(intent);
                 break;
         }
