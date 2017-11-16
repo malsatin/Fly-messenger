@@ -4,12 +4,14 @@ import java.util.*;
 public class Huffman {
     private Node root;
     private int size;
+    private BitStream stream;
 
     public byte[] compressByteString(byte[] message) {
         this.size = message.length;
         Map<Byte, Integer> map = countFrequency(message);
+        stream = serializeMessage(map);
         this.root = buildTree(map);
-        Map<Byte, String> codes = new HashMap<Byte, String>();
+        Map<Byte, String> codes = new HashMap<>();
         if (root.isLeaf()) {
             codes.put(root.getValue(), "0");
         } else {
@@ -19,11 +21,18 @@ public class Huffman {
         return encoded;
     }
 
-    public byte[] decompressByteString(byte[] sequence) {
+
+    public BitStream getStream() {
+        return stream;
+    }
+
+    public byte[] decompressByteString(byte[] sequence, BitStream inStream) {
+        Map<Byte, Integer> map = deserializeMessage(inStream);
+        Node root = buildTree(map);
         byte[] message = new byte[size];
         BitStream stream = new BitStream(sequence);
         int i = 0;
-        while (!stream.isEmpty()&&i<size) {
+        while (!stream.isEmpty() && i < size) {
             Node current = root;
             while (current.left != null) {
                 if (!stream.readBit()) {
@@ -88,4 +97,22 @@ public class Huffman {
         return encoded.toByteArray();
     }
 
+    private BitStream serializeMessage(Map<Byte, Integer> map) {
+        BitStream stream = new BitStream();
+        stream.addInt(map.size());
+        for (Map.Entry<Byte, Integer> entry : map.entrySet()) {
+            stream.addByte(entry.getKey());
+            stream.addInt(entry.getValue());
+        }
+        return stream;
+    }
+
+    private Map<Byte, Integer> deserializeMessage(BitStream stream) {
+        Map<Byte, Integer> map = new HashMap<>();
+        int size = stream.readInt();
+        for (int i = 0; i < size; i++) {
+            map.put(stream.readByte(), stream.readInt());
+        }
+        return map;
+    }
 }
