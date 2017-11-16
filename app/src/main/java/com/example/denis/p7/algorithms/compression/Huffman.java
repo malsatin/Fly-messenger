@@ -1,5 +1,11 @@
 package com.example.denis.p7.algorithms.compression;
-import java.util.*;
+
+import com.example.denis.p7.algorithms.helpers.BitStream;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.Queue;
 
 public class Huffman {
     private Node root;

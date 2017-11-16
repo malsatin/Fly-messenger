@@ -1,14 +1,22 @@
 package com.example.denis.p7.activities;
 
+import android.Manifest;
+import android.app.Activity;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.DocumentsContract;
+import android.provider.MediaStore;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -34,12 +42,19 @@ import com.example.denis.p7.TCPClient;
 import com.example.denis.p7.algorithms.coding.HammingCode;
 import com.example.denis.p7.algorithms.coding.ParityBit;
 import com.example.denis.p7.algorithms.coding.RepetitionCode;
+import com.example.denis.p7.algorithms.compression.Huffman;
+import com.example.denis.p7.algorithms.compression.LZ77;
+import com.example.denis.p7.algorithms.compression.RLE;
+import com.example.denis.p7.algorithms.exceptions.DecompressionException;
 import com.example.denis.p7.algorithms.exceptions.FileTooBigException;
 import com.example.denis.p7.algorithms.helpers.ByteHelper;
+import com.squareup.picasso.Picasso;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 
 public class second extends AppCompatActivity implements View.OnClickListener, PopupMenu.OnMenuItemClickListener {
     ActionBar ab;
@@ -62,6 +77,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
     String s;
     int k = 0, port = 3129;
     byte codingType, compressionType, msgType;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -154,7 +170,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                 startActivity(intent);
                 return true;
             case R.id.fullInfo:
-                ClearHistory clearHistory=new ClearHistory();
+                ClearHistory clearHistory = new ClearHistory();
                 clearHistory.execute();
                 return true;
             case R.id.clear:
@@ -171,7 +187,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.fabSend:
-                sendMsg = new SendMsg();
+                //sendMsg = new SendMsg();
                 bytes = ByteHelper.getBytesFromString(editText.getText().toString());
                 msgType = (byte) 0;
                 sendMsg.execute(bytes);
@@ -224,28 +240,125 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         if (resultCode == RESULT_OK) {
             switch (requestCode) {
                 case REQUEST_CODE_IMAGE:
-                    uri = data.getDataString();
-                    sendMsg = new SendMsg();
-                    msgType = (byte) 1;
+                    Uri uri = data.getData();
+                    String uriS = data.getDataString();
+                    s = getFilePath(uri);
+                    //s=getFileExtension(s);
+                    sendMsg = new SendMsg((byte) 1, ByteHelper.getBytesFromString(s));
                     try {
-                        sendMsg.execute(ByteHelper.readBytesFromFile(Uri.parse(uri).getPath()));
+                        verifyStoragePermissions(second.this);
+                        sendMsg.execute(ByteHelper.readBytesFromFile(s));
                     } catch (IOException e) {
                         e.printStackTrace();
                     } catch (FileTooBigException e) {
                         e.printStackTrace();
                     }
-                    break;
 
+                    break;
                 case REQUEST_CODE_AUDIO:
-                    uri = data.getDataString();
+                    //uri = data.getData();
                     msgTV = new TextView(this);
                     msgTV.setText(data.toString());
-                    msgTV.setContentDescription(uri);
+                    //msgTV.setContentDescription(uri.toString());
                     msgTV.setOnClickListener(onClickListenerAV);
                     msgTV.setLayoutParams(msgTextLParamsLL);
                     scrollLL.addView(msgTV);
                     break;
             }
+        }
+
+    }
+
+    // метод возвращает полный реальный путь до файла, включая имя и расширение
+    public String getFilePath(Uri uri) {
+        String selection = null;
+        String[] selectionArgs = null;
+        if (Build.VERSION.SDK_INT >= 19 && DocumentsContract.isDocumentUri(this, uri)) {
+            if (isExternalStorageDocument(uri)) {
+                final String docId = DocumentsContract.getDocumentId(uri);
+                final String[] split = docId.split(":");
+                return Environment.getExternalStorageDirectory() + "/" + split[1];
+            } else if (isDownloadsDocument(uri)) {
+                final String id = DocumentsContract.getDocumentId(uri);
+                uri = ContentUris.withAppendedId(Uri.parse("content://downloads/public_downloads"), Long.valueOf(id));
+            } else if (isMediaDocument(uri)) {
+                final String docId = DocumentsContract.getDocumentId(uri);
+                final String[] split = docId.split(":");
+                final String type = split[0];
+                if ("image".equals(type)) {
+                    uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+                } else if ("video".equals(type)) {
+                    uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+                } else if ("audio".equals(type)) {
+                    uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+                }
+                selection = "_id=?";
+                selectionArgs = new String[]{split[1]};
+            }
+        }
+        if ("content".equalsIgnoreCase(uri.getScheme())) {
+            String[] projection = {MediaStore.Images.Media.DATA};
+            Cursor cursor = null;
+            try {
+                cursor = getContentResolver().query(uri, projection, selection, selectionArgs, null);
+                int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+                if (cursor.moveToFirst()) {
+                    return cursor.getString(column_index);
+                }
+            } catch (Exception e) {
+            } finally {
+                if (cursor != null) cursor.close();
+            }
+        } else if ("file".equalsIgnoreCase(uri.getScheme())) {
+            return uri.getPath();
+        }
+        return null;
+    }
+
+    public static boolean isExternalStorageDocument(Uri uri) {
+        return "com.android.externalstorage.documents".equals(uri.getAuthority());
+    }
+
+    public static boolean isDownloadsDocument(Uri uri) {
+        return "com.android.providers.downloads.documents".equals(uri.getAuthority());
+    }
+
+    public static boolean isMediaDocument(Uri uri) {
+        return "com.android.providers.media.documents".equals(uri.getAuthority());
+    }
+
+    // метод возвращает из полного пути расширение файла
+    public String getFileExtension(String path) {
+        int pos = path.lastIndexOf(".");
+        if (pos != -1) return path.substring(pos + 1);
+        else return "";
+    }
+
+    // Storage Permissions
+    private static final int REQUEST_EXTERNAL_STORAGE = 1;
+    private static String[] PERMISSIONS_STORAGE = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
+
+    /**
+     * Checks if the app has permission to write to device storage
+     * <p>
+     * If the app does not has permission then the user will be prompted to grant permissions
+     *
+     * @param activity
+     */
+    public static void verifyStoragePermissions(Activity activity) {
+        // Check if we have write permission
+        int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            // We don't have permission so prompt the user
+            ActivityCompat.requestPermissions(
+                    activity,
+                    PERMISSIONS_STORAGE,
+                    REQUEST_EXTERNAL_STORAGE
+            );
         }
     }
 
@@ -256,7 +369,11 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
             // Verify that the intent will resolve to an activity
             if (intent.resolveActivity(getPackageManager()) != null) {
 
-                startActivity(intent);
+                try {
+                    startActivity(intent);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
     };
@@ -310,10 +427,12 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
     }
 
     class SendMsg extends AsyncTask<byte[], Void, Integer> {
+        byte msgType;
+        byte[] msgExtension;
 
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
+        SendMsg(byte msgType, byte[] msgExtension) {
+            this.msgType = msgType;
+            this.msgExtension = msgExtension;
         }
 
         @RequiresApi(api = Build.VERSION_CODES.KITKAT)
@@ -327,6 +446,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
             outStream.write(codingType);
             outStream.write(compressionType);
             try {
+                //outStream.write(msgExtension);
                 outStream.write(nickname);
                 switch (codingType) {
                     case (byte) 0:
@@ -339,18 +459,18 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                         codedStream.write((new RepetitionCode()).encodeByteString(bytes[0]));
                         break;
                 }
-//                switch(compressionType){
-//                    case (byte)0:
-//                        compressedStream.write((new Huffman()).compressByteString(codedStream.toByteArray()));
-//                        break;
-//                    case (byte)1:
-//                        compressedStream.write((new LZ77()).compressByteString(codedStream.toByteArray()));
-//                        break;
-//                    case (byte)2:
-//                        compressedStream.write((new RLE()).compressByteString(codedStream.toByteArray()));
-//                        break;
-//                }
-                outStream.write(codedStream.toByteArray());//TODO replace coded on compressed
+                switch (compressionType) {
+                    case (byte) 0:
+                        compressedStream.write((new Huffman()).compressByteString(codedStream.toByteArray()));
+                        break;
+                    case (byte) 1:
+                        compressedStream.write((new LZ77()).compressByteString(codedStream.toByteArray()));
+                        break;
+                    case (byte) 2:
+                        compressedStream.write((new RLE()).compressByteString(codedStream.toByteArray()));
+                        break;
+                }
+                outStream.write(bytes[0]);      //TODO replace on codedStream.toByteArray()
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -417,27 +537,34 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                 decompressedStream = new ByteArrayOutputStream();
                 byte[] msg = new byte[bytes[i].length - 23];
                 System.arraycopy(bytes[i], 23, msg, 0, msg.length);
-//                switch (bytes[i][2]) {
-//                    case (byte) 0:
-//                        decompressedStream.write((new Huffman()).decompressByteString(msg));
-//                        break;
-//                    case (byte) 1:
-//                        decompressedStream.write((new LZ77()).decompressByteString(msg));
-//                        break;
-//                    case (byte) 2:
-//                        decompressedStream.write((new RLE()).decompressByteString(msg));
-//                        break;
-//                }
+                try {
+                    switch (bytes[i][2]) {
+                        case (byte) 0:
+                            decompressedStream.write((new Huffman()).decompressByteString(msg));
+                            break;
+                        case (byte) 1:
+                            decompressedStream.write((new LZ77()).decompressByteString(msg));
+                            break;
+                        case (byte) 2:
+                            decompressedStream.write((new RLE()).decompressByteString(msg));
+                            break;
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (DecompressionException e) {
+                    e.printStackTrace();
+                }
+
                 try {
                     switch (bytes[i][1]) {
                         case (byte) 0:
-                            decodedStream.write((new HammingCode()).decodeByteString(msg));//TODO replace msg
+                            decodedStream.write((new HammingCode()).decodeByteString(decompressedStream.toByteArray()));
                             break;
                         case (byte) 1:
-                            decodedStream.write((new ParityBit()).decodeByteString(msg));//TODO replace msg
+                            decodedStream.write((new ParityBit()).decodeByteString(decompressedStream.toByteArray()));
                             break;
                         case (byte) 2:
-                            decodedStream.write((new RepetitionCode()).decodeByteString(msg));//TODO replace msg
+                            decodedStream.write((new RepetitionCode()).decodeByteString(decompressedStream.toByteArray()));
                             break;
                     }
                 } catch (Exception e) {
@@ -452,7 +579,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                         msgTextLL.setLayoutParams(msgTextLParamsLL);
                         msgTV.setLayoutParams(msgLParamsTV);
 
-                        s = ByteHelper.getStringFromBytes(decodedStream.toByteArray());
+                        s = ByteHelper.getStringFromBytes(msg);     //TODO replace on decodedStream.toByteArray()
                         msgTV.setText(s);
 
                         msgTextLL.addView(msgTV);
@@ -466,13 +593,20 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                         msgImageLL.setLayoutParams(msgImageLParamsLL);
                         msgIV.setLayoutParams(msgLParamsIV);
 
-                        String path = Environment.getDataDirectory().getPath();
+                        String path = getApplicationInfo().dataDir + "/t1.JPG";
                         try {
-                            ByteHelper.writeBytesToFile(decodedStream.toByteArray(), path);
+                            ByteHelper.writeBytesToFile(msg, path);     //TODO replace on decodedStream.toByteArray()
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                        // msgIV.setImageURI();
+                        try {
+                            uri=new File(path).toURI().toURL().toExternalForm();
+                        } catch (MalformedURLException e) {
+                            e.printStackTrace();
+                        }
+                        Picasso.with(second.this).load(Uri.parse(uri)).resize(500,500).into(msgIV);
+                        //msgIV.setImageURI(Uri.parse(uri));
+
                         msgIV.setContentDescription(uri);
                         msgIV.setOnClickListener(onClickListenerIV);
 
