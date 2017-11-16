@@ -1,3 +1,4 @@
+package com.example.denis.p7.algorithms.compression;
 import java.util.*;
 
 public class Huffman {
