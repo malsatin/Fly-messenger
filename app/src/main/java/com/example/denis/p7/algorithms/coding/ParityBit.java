@@ -12,15 +12,14 @@ public class ParityBit implements ICoder {
     public byte[] encodeByteString(byte[] message) {
         BitStream in = new BitStream(message);
         BitStream out = new BitStream();
-        int i, j;
-        long cur;
-        long control;
+        long i, j;
+        long cur, control;
         for (i = 0; i < in.size(); i += BITS_OF_DATA) {
-            cur = in.readNumber(BITS_OF_DATA) >>> (BitStream.LONG_SIZE - BITS_OF_DATA);
+            cur = in.readNumber(BITS_OF_DATA);
             out.addNumber(cur, BITS_OF_DATA);
             control = 0;
             for (j = 0; j < BITS_OF_DATA; j++) {
-                control ^= cur >>> j;
+                control ^= (cur & (1L << j)) >>> j;
             }
             out.addBit((control & 1L) == 1);
         }
@@ -31,15 +30,16 @@ public class ParityBit implements ICoder {
     public byte[] decodeByteString(byte[] sequence) throws DecodingException {
         BitStream in = new BitStream(sequence);
         BitStream out = new BitStream();
-        int i, j;
-        long cur;
-        long control;
-        for (i = 0; i < in.size(); i += BITS_ENCODED) {
-            cur = in.readNumber(BITS_ENCODED) >>> (BitStream.LONG_SIZE - BITS_ENCODED);
+        long i, j;
+        long cur, control;
+        for (i = 0; i < in.size() - BITS_OF_DATA; i += BITS_ENCODED) {
+            cur = in.readNumber(BITS_ENCODED);
             control = 0;
             for (j = 0; j < BITS_ENCODED; j++) {
-                control ^= cur >>> j;
+                control ^= (cur & (1L << j)) >>> j;
+                System.out.print((cur & (1L << j)) >>> j);
             }
+            System.out.println();
             if ((control & 1L) != 0) {
                 throw new DecodingException();
             }
