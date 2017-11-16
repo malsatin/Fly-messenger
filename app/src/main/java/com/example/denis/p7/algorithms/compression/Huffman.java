@@ -41,7 +41,7 @@ public class Huffman {
 
     private static void generateCode(Node node, Map<Byte, String> map, String s) {
         if (node.isLeaf()) {
-            map.put(node.getValue(), s);
+            map.put(node.getValue(), "0");
             return;
         }
         generateCode(node.left, map, s + '0');
