@@ -1,10 +1,11 @@
-package com.example.denis.p7.algorithms.compression;
 import java.util.*;
 
 public class Huffman {
+    private Node root;
+
     public byte[] compressByteString(byte[] message) {
         Map<Byte, Integer> map = countFrequency(message);
-        Node root = buildTree(map);
+        this.root = buildTree(map);
         Map<Byte, String> codes = new HashMap<Byte, String>();
         if (root.isLeaf()) {
             codes.put(root.getValue(), "0");
@@ -15,19 +16,21 @@ public class Huffman {
         return encoded;
     }
 
-    public Byte[] decompressByteString(byte[] sequence, Node root) {
-        Byte[] message = new Byte[sequence.length];
-        for (int i = 0; i < sequence.length; i++) {
+    public byte[] decompressByteString(byte[] sequence) {
+        byte[] message = new byte[sequence.length];
+        BitStream stream = new BitStream(sequence);
+        int i = 0;
+        while (!stream.isEmpty()&&i<sequence.length) {
             Node current = root;
-            while ((current.getLeft() != null)) {
-                if (sequence[i] != 0) {
-                    current = current.left;
+            while (current.left != null) {
+                if (!stream.readBit()) {
+                    current = current.getLeft();
                 } else {
-                    current = current.right;
+                    current = current.getRight();
                 }
-                i++;
             }
             message[i] = current.getValue();
+            i++;
         }
         return message;
     }
