@@ -37,7 +37,6 @@ public class ParityBit implements ICoder {
             control = 0;
             for (j = 0; j < BITS_ENCODED; j++) {
                 control ^= (cur & (1L << j)) >>> j;
-                System.out.print((cur & (1L << j)) >>> j);
             }
             System.out.println();
             if ((control & 1L) != 0) {
