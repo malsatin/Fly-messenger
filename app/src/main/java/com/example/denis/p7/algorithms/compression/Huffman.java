@@ -3,8 +3,10 @@ import java.util.*;
 
 public class Huffman {
     private Node root;
+    private int size;
 
     public byte[] compressByteString(byte[] message) {
+        this.size = message.length;
         Map<Byte, Integer> map = countFrequency(message);
         this.root = buildTree(map);
         Map<Byte, String> codes = new HashMap<Byte, String>();
@@ -18,10 +20,10 @@ public class Huffman {
     }
 
     public byte[] decompressByteString(byte[] sequence) {
-        byte[] message = new byte[sequence.length];
+        byte[] message = new byte[size];
         BitStream stream = new BitStream(sequence);
         int i = 0;
-        while (!stream.isEmpty()&&i<sequence.length) {
+        while (!stream.isEmpty()&&i<size) {
             Node current = root;
             while (current.left != null) {
                 if (!stream.readBit()) {
