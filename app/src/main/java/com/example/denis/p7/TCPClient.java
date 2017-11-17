@@ -1,6 +1,6 @@
 package com.example.denis.p7;
 
-//import org.apache.commons.io.IOUtils;  // TODO uncomment
+import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,7 +58,7 @@ public class TCPClient {
             // read message using size of prefix
             int length = new BigInteger(messageSize).intValue();
             byte[] message = new byte[length];
-//            IOUtils.read(is, message);
+            IOUtils.read(is, message);
             // put message into output container
             result[i] = message;
         }
