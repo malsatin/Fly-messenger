@@ -20,15 +20,12 @@ public class Huffman {
         }
         byte[] encoded = encodeMessage(codes, message);
         stream = serializeMessage(encoded, map);
-        return encoded;
+        return stream.toByteArray();
     }
 
 
-    public BitStream getStream() {
-        return stream;
-    }
-
-    public byte[] decompressByteString(BitStream inStream) {
+    public byte[] decompressByteString(byte[] inputStream) {
+        BitStream inStream = new BitStream(inputStream);
         Map<Byte, Integer> map = deserializeMap(inStream);
         int size = inStream.readInt();
         byte[] sequence = deserializeMessage(inStream);
