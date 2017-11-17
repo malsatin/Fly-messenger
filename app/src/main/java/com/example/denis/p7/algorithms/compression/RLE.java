@@ -9,6 +9,7 @@ import com.example.denis.p7.algorithms.interfaces.ICompressor;
  * Created by Sergey on 2017-11-07
  */
 public class RLE implements ICompressor {
+
     @Override
     public byte[] compressByteString(byte[] message) {
         // TODO: implement algorithm
@@ -20,4 +21,5 @@ public class RLE implements ICompressor {
         // TODO: implement algorithm
         return sequence.clone();
     }
+
 }

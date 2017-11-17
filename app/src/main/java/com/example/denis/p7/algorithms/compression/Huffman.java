@@ -8,6 +8,7 @@ import java.util.*;
 
 public class Huffman implements ICompressor {
 
+    @Override
     public byte[] compressByteString(byte[] message) {
         Map<Byte, Integer> frequencyMap = countFrequency(message);
         Node root = buildTree(frequencyMap);
@@ -25,6 +26,7 @@ public class Huffman implements ICompressor {
         return stream.toByteArray();
     }
 
+    @Override
     public byte[] decompressByteString(byte[] inputStream) throws DecompressionException {
         BitStream inStream = new BitStream(inputStream);
 
