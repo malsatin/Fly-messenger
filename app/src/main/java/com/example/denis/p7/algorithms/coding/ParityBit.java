@@ -6,14 +6,13 @@ import com.example.denis.p7.algorithms.interfaces.ICoder;
 
 public class ParityBit implements ICoder {
     private static final int BITS_OF_DATA = 8;
-    private static final int BITS_ENCODED = BITS_OF_DATA + 1;
+    private static final int BIT_PORTIONS = BITS_OF_DATA + 1;
 
     @Override
     public byte[] encodeByteString(byte[] message) {
         BitStream in = new BitStream(message);
         BitStream out = new BitStream();
-        long i, j;
-        long cur, control;
+        long i, j, cur, control;
         for (i = 0; i < in.size(); i += BITS_OF_DATA) {
             cur = in.readNumber(BITS_OF_DATA);
             out.addNumber(cur, BITS_OF_DATA);
@@ -30,12 +29,11 @@ public class ParityBit implements ICoder {
     public byte[] decodeByteString(byte[] sequence) throws DecodingException {
         BitStream in = new BitStream(sequence);
         BitStream out = new BitStream();
-        long i, j;
-        long cur, control;
-        for (i = 0; i < in.size() - BITS_OF_DATA; i += BITS_ENCODED) {
-            cur = in.readNumber(BITS_ENCODED);
+        long i, j, cur, control;
+        for (i = 0; i < in.size() - BITS_OF_DATA; i += BIT_PORTIONS) {
+            cur = in.readNumber(BIT_PORTIONS);
             control = 0;
-            for (j = 0; j < BITS_ENCODED; j++) {
+            for (j = 0; j < BIT_PORTIONS; j++) {
                 control ^= (cur & (1L << j)) >>> j;
             }
             System.out.println();
