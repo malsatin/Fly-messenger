@@ -12,7 +12,6 @@ import java.io.*;
  * Edited by Denis Chernikov on 2017-11-05
  */
 public class ByteHelper {
-
     private final static int MAX_FILE_SIZE = 100 * 1024 * 1024; // in bytes
 
     /**

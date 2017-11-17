@@ -39,7 +39,8 @@ public class HammingCode implements ICoder {
         for (i = 0; i < in.size() * BITS_OF_DATA / (BITS_OF_DATA + PARITY_BITS) - BITS_OF_DATA - PARITY_BITS; i += BitStream.BYTE_SIZE) {
             out.addByte(in.readByte());  // Wrong! Check on the way...
         }
-        //in.size() - (BitStream.BYTE_SIZE / BITS_OF_DATA) * in.size() % BITS_OF_DATA; i += BITS_OF_DATA
-        return out.toByteArray();
+        byte[] dataBits = out.toByteArray();
+        // TODO check for errors, fix them if possible
+        return dataBits;
     }
 }

@@ -36,9 +36,8 @@ public class ParityBit implements ICoder {
             for (j = 0; j < BIT_PORTIONS; j++) {
                 control ^= (cur & (1L << j)) >>> j;
             }
-            //System.out.println();
             if ((control & 1L) != 0) {
-                throw new DecodingException();
+                throw new DecodingException("Error detected while decoding! Please, ask for the data again.");
             }
             out.addNumber(cur >>> 1, BITS_OF_DATA);
         }
