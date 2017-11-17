@@ -15,7 +15,7 @@ import com.example.denis.p7.algorithms.interfaces.ICompressor;
 public class CompressionTest {
 
     public static void main(String[] args) throws DecompressionException {
-        String testStr = "Бебе бубу ()?* 1233. In each of the types of compression schemes the goal is to compress down to the entropy of the source.";
+        String testStr = "<<<<<<<<<<<<<<<<<<<<<<<<<Бебе бубу ()?* 1233. In each of the types of compression schemes the goal is to compress down to the entropy of the source.";
 
         ICompressor[] algorithms = {new Huffman(), new RLE(), new LZ77()};
 
