@@ -25,7 +25,6 @@ public class Huffman implements ICompressor {
         return stream.toByteArray();
     }
 
-
     public byte[] decompressByteString(byte[] inputStream) throws DecompressionException {
         BitStream inStream = new BitStream(inputStream);
 
