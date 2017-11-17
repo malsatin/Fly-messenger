@@ -90,7 +90,8 @@
                 android:layout_marginRight="@dimen/marginToMsgLL"
                 android:layout_marginTop="@dimen/marginSemiIntervalMsgLL"
                 android:background="@drawable/msg_in"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:visibility="gone">
 
                 <TextView
                     android:id="@+id/msgTV"
@@ -115,18 +116,60 @@
                 android:layout_marginRight="@dimen/marginToMsgLL"
                 android:layout_marginTop="@dimen/marginSemiIntervalMsgLL"
                 android:background="@drawable/msg_photo"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:visibility="gone">
+                <TextView
+                    android:id="@+id/senderTV"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/marginLostMsgTV"
+                    android:text="TextViefdgdfgdw" />
 
                 <ImageView
                     android:id="@+id/msgIV"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="@dimen/maxSizeOfImage"
+                    android:layout_height="@dimen/maxSizeOfImage"
                     android:layout_margin="@dimen/marginLostMsgTV"
                     android:background="@drawable/fon"
-                    android:clickable="true"
-                    />
+                    android:clickable="true" />
+                <TextView
+                    android:id="@+id/infoTV"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/marginLostMsgTV"
+                    android:text="@string/example" />
             </LinearLayout>
 
+            <LinearLayout
+                android:id="@+id/msgFileLL"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:layout_marginBottom="@dimen/marginSemiIntervalMsgLL"
+                android:layout_marginLeft="@dimen/marginFromMsgLL"
+                android:layout_marginRight="@dimen/marginToMsgLL"
+                android:layout_marginTop="@dimen/marginSemiIntervalMsgLL"
+                android:background="@drawable/msg_photo"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <ImageView
+                    android:id="@+id/msgFileIV"
+                    android:layout_width="@dimen/maxSizeOfFile"
+                    android:layout_height="@dimen/maxSizeOfFile"
+                    android:layout_margin="@dimen/marginLostMsgTV"
+                    android:background="@mipmap/audio"
+                    android:clickable="true" />
+
+                <TextView
+                    android:id="@+id/msgFileTV"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/marginLostMsgTV"
+                    android:text="@string/example"  />
+
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 

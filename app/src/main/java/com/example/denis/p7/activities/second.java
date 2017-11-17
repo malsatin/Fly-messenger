@@ -73,7 +73,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
     TCPClient client;
     byte[] bytes;
     byte[] nickname;
-    byte b;
+    byte b;byte space;
     String s;
     int k = 0, port = 3129;
     byte codingType, compressionType, msgType;
@@ -100,7 +100,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         codingType = (byte) intent.getIntExtra(first.codingTypeString, 5);
         compressionType = (byte) intent.getIntExtra(first.compressionTypeString, 5);
         bytes = ByteHelper.getBytesFromString(intent.getStringExtra(first.nickname));
-        byte space = ByteHelper.getBytesFromString(" ")[0];
+        space = ByteHelper.getBytesFromString(" ")[0];
         nickname = new byte[20];
         for (int i = 0; i < 20; i++) {
             nickname[i] = (bytes.length > i) ? bytes[i] : space;
@@ -117,6 +117,8 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         msgLParamsTV = (LinearLayout.LayoutParams) msgTV.getLayoutParams();
         msgImageLParamsLL = (LinearLayout.LayoutParams) msgImageLL.getLayoutParams();
         msgLParamsIV = (LinearLayout.LayoutParams) msgIV.getLayoutParams();
+        // прячем клавиатуру. butCalculate - это кнопка
+        imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 
         editText = (EditText) findViewById(R.id.editText);
         editText.addTextChangedListener(new TextWatcher() {
@@ -187,9 +189,8 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.fabSend:
-                //sendMsg = new SendMsg();
+                sendMsg = new SendMsg((byte) 0);
                 bytes = ByteHelper.getBytesFromString(editText.getText().toString());
-                msgType = (byte) 0;
                 sendMsg.execute(bytes);
                 break;
         }
@@ -243,8 +244,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                     Uri uri = data.getData();
                     String uriS = data.getDataString();
                     s = getFilePath(uri);
-                    //s=getFileExtension(s);
-                    sendMsg = new SendMsg((byte) 1, ByteHelper.getBytesFromString(s));
+                    sendMsg = new SendMsg((byte) 1, ByteHelper.getBytesFromString(getFileExtension(s)));
                     try {
                         verifyStoragePermissions(second.this);
                         sendMsg.execute(ByteHelper.readBytesFromFile(s));
@@ -434,6 +434,9 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
             this.msgType = msgType;
             this.msgExtension = msgExtension;
         }
+        SendMsg(byte msgType) {
+            this.msgType = msgType;
+        }
 
         @RequiresApi(api = Build.VERSION_CODES.KITKAT)
         @Override
@@ -446,8 +449,14 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
             outStream.write(codingType);
             outStream.write(compressionType);
             try {
-                //outStream.write(msgExtension);
                 outStream.write(nickname);
+                if (msgType!=(byte)0) {
+                    byte[] exten = new byte[20];
+                    for (int i = 0; i < 20; i++) {
+                        exten[i] = (msgExtension.length > i) ? msgExtension[i] : space;
+                    }
+                    outStream.write(exten);
+                }
                 switch (codingType) {
                     case (byte) 0:
                         codedStream.write((new HammingCode()).encodeByteString(bytes[0]));
@@ -490,8 +499,8 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
             super.onPostExecute(response);
             switch (response) {
                 case 0:
-                    imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
                     editText.setText("");
+                    imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
                     fabAttach.setVisibility(View.VISIBLE);
                     fabSend.setVisibility(View.INVISIBLE);
                     break;
@@ -535,12 +544,13 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
             for (int i = 0; i < bytes.length; i++) {
                 decodedStream = new ByteArrayOutputStream();
                 decompressedStream = new ByteArrayOutputStream();
-                byte[] msg = new byte[bytes[i].length - 23];
-                System.arraycopy(bytes[i], 23, msg, 0, msg.length);
+                int delta=(bytes[i][0]==0)?23:43;
+                byte[] msg = new byte[bytes[i].length - delta];
+                System.arraycopy(bytes[i], delta, msg, 0, msg.length);
                 try {
-                    switch (bytes[i][2]) {
+                    switch (bytes[i][2]) {      //decompression type
                         case (byte) 0:
-                            decompressedStream.write((new Huffman()).decompressByteString(msg));
+                            //decompressedStream.write((new Huffman()).decompressByteString(msg));
                             break;
                         case (byte) 1:
                             decompressedStream.write((new LZ77()).decompressByteString(msg));
@@ -556,7 +566,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                 }
 
                 try {
-                    switch (bytes[i][1]) {
+                    switch (bytes[i][1]) {      //decoding type
                         case (byte) 0:
                             decodedStream.write((new HammingCode()).decodeByteString(decompressedStream.toByteArray()));
                             break;
@@ -570,8 +580,8 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                switch (bytes[i][0]) {
-                    case (byte) 0:
+                switch (bytes[i][0]) {      //file type
+                    case (byte) 0:      //text msg
                         msgTextLL = new LinearLayout(second.this);
                         msgTextLL.setBackgroundResource(R.drawable.msg_in);
                         msgTV = new TextView(second.this);
@@ -585,7 +595,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                         msgTextLL.addView(msgTV);
                         scrollLL.addView(msgTextLL);
                         break;
-                    case (byte) 1:
+                    case (byte) 1:      //image file
                         msgImageLL = new LinearLayout(second.this);
                         msgImageLL.setBackgroundResource(R.drawable.msg_photo);
                         msgIV = new ImageView(second.this);
@@ -593,7 +603,9 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                         msgImageLL.setLayoutParams(msgImageLParamsLL);
                         msgIV.setLayoutParams(msgLParamsIV);
 
-                        String path = getApplicationInfo().dataDir + "/t1.JPG";
+                        byte[] exten=new byte[20];
+                        System.arraycopy(bytes[i],23,exten,0,20);
+                        String path = getApplicationInfo().dataDir + "/i" + k +"."+ByteHelper.getStringFromBytes(exten);
                         try {
                             ByteHelper.writeBytesToFile(msg, path);     //TODO replace on decodedStream.toByteArray()
                         } catch (IOException e) {
@@ -604,7 +616,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                         } catch (MalformedURLException e) {
                             e.printStackTrace();
                         }
-                        Picasso.with(second.this).load(Uri.parse(uri)).resize(500,500).into(msgIV);
+                        Picasso.with(second.this).load(Uri.parse(uri)).fit().into(msgIV);
                         //msgIV.setImageURI(Uri.parse(uri));
 
                         msgIV.setContentDescription(uri);
@@ -613,7 +625,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                         msgImageLL.addView(msgIV);
                         scrollLL.addView(msgImageLL);
                         break;
-                    case (byte) 2:
+                    case (byte) 2:      //audio file
                         break;
                 }
                 k++;

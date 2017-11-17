@@ -7,6 +7,10 @@ package com.example.denis.p7.algorithms.exceptions;
  */
 public class DecompressionException extends Exception {
 
+    public DecompressionException() {
+        super();
+    }
+
     public DecompressionException(String message) {
         super(message);
     }
