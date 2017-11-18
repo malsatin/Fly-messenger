@@ -489,7 +489,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
             super.onPreExecute();
             pds = new ProgressDialog(second.this);
             pds.setProgressStyle(R.style.AppCompatAlertDialogStyle); //Set style
-            pds.setMessage("Sending message..."); //Message
+            pds.setMessage("Sending message...");
             pds.setIndeterminate(true);
             pds.setCancelable(false);
             pds.show();
@@ -514,6 +514,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                     }
                     outStream.write(exten);
                 }
+              //  pds.setMessage("Coding message...");
                 switch (codingType) {
                     case (byte) 0:
                         codedStream.write((new HammingCode()).encodeByteString(bytes[0]));
@@ -525,6 +526,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                         codedStream.write((new RepetitionCode()).encodeByteString(bytes[0]));
                         break;
                 }
+              //  pds.setMessage("Compressing message...");
                 switch (compressionType) {
                     case (byte) 0:
                         compressedStream.write((new Huffman()).compressByteString(codedStream.toByteArray()));
@@ -536,12 +538,13 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                         compressedStream.write((new RLE()).compressByteString(codedStream.toByteArray()));
                         break;
                 }
-                outStream.write(codedStream.toByteArray());
+                outStream.write(compressedStream.toByteArray());
             } catch (IOException e) {
                 e.printStackTrace();
             }
             byte[] block = outStream.toByteArray();
 
+           // pds.setMessage("Sending message...");
             // Send bytes to server
             try {
                 response = client.sendMessage(block);
@@ -554,7 +557,6 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         @Override
         protected void onPostExecute(Integer response) {
             super.onPostExecute(response);
-            pds.dismiss();
             switch (response) {
                 case 0:
                     editText.setText("");
@@ -574,6 +576,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                     Toast.makeText(second.this, "Some exception", Toast.LENGTH_SHORT).show();
                     break;
             }
+            pds.dismiss();
         }
     }
 
@@ -606,7 +609,6 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         @Override
         protected void onPostExecute(byte[][] bytes) {
             super.onPostExecute(bytes);
-            pds.dismiss();
             if (bytes.length == 0) return;
             ByteArrayOutputStream decodedStream;
             ByteArrayOutputStream decompressedStream;
@@ -623,6 +625,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                 System.arraycopy(bytes[i], 3, nickname, 0, 20);
                 info += msg.length;
 
+                pds.setMessage("Decompressing message...");
                 //decompression type
                 try {
                     switch (bytes[i][2]) {
@@ -646,6 +649,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                 }
                 info += decompressedStream.size();
 
+                pds.setMessage("Decoding message...");
                 //decoding type
                 try {
                     switch (bytes[i][1]) {
@@ -792,6 +796,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                 }
                 k++;
             }
+            pds.dismiss();
         }
     }
 
