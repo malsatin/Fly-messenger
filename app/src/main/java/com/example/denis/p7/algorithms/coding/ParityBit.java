@@ -9,12 +9,11 @@ public class ParityBit implements ICoder {
     private static final int BIT_PORTIONS = BITS_OF_DATA + 1;
 
     @Override
-    public byte[] encodeByteString(byte[] message) {
-        BitStream in = new BitStream(message);
+    public BitStream encodeBitStream(BitStream message) {
         BitStream out = new BitStream();
         long i, j, cur, control;
-        for (i = 0; i < in.size(); i += BITS_OF_DATA) {
-            cur = in.readNumber(BITS_OF_DATA);
+        for (i = 0; i < message.size(); i += BITS_OF_DATA) {
+            cur = message.readNumber(BITS_OF_DATA);
             out.addNumber(cur, BITS_OF_DATA);
             control = 0;
             for (j = 0; j < BITS_OF_DATA; j++) {
@@ -22,16 +21,16 @@ public class ParityBit implements ICoder {
             }
             out.addBit((control & 1L) == 1);
         }
-        return out.toByteArray();
+        out.reset();
+        return out;
     }
 
     @Override
-    public byte[] decodeByteString(byte[] sequence) throws DecodingException {
-        BitStream in = new BitStream(sequence);
+    public BitStream decodeBitStream(BitStream sequence) throws DecodingException {
         BitStream out = new BitStream();
         long i, j, cur, control;
-        for (i = 0; i < in.size() - BITS_OF_DATA; i += BIT_PORTIONS) {
-            cur = in.readNumber(BIT_PORTIONS);
+        for (i = 0; i < sequence.size() - BITS_OF_DATA; i += BIT_PORTIONS) {
+            cur = sequence.readNumber(BIT_PORTIONS);
             control = 0;
             for (j = 0; j < BIT_PORTIONS; j++) {
                 control ^= (cur & (1L << j)) >>> j;
@@ -41,6 +40,7 @@ public class ParityBit implements ICoder {
             }
             out.addNumber(cur >>> 1, BITS_OF_DATA);
         }
-        return out.toByteArray();
+        out.reset();
+        return out;
     }
 }

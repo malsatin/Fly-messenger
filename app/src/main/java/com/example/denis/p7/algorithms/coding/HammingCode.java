@@ -9,16 +9,15 @@ public class HammingCode implements ICoder {
     private static final int PARITY_BITS = 3;
 
     @Override
-    public byte[] encodeByteString(byte[] message) {
-        BitStream in = new BitStream(message);
+    public BitStream encodeBitStream(BitStream message) {
         BitStream out = new BitStream();
         BitStream parityBits = new BitStream();
         long[] data = new long[BITS_OF_DATA];
         long i;
         int j;
-        for (i = 1; i < in.size(); i += BITS_OF_DATA) {
+        for (i = 1; i < message.size(); i += BITS_OF_DATA) {
             for (j = 0; j < BITS_OF_DATA; ++j) {
-                data[j] = in.readBit() ? 1L : 0L;
+                data[j] = message.readBit() ? 1L : 0L;
                 out.addBit(data[j] == 1);
             }
             /* Attention! Constant block of code. To be refactored if any of constants above constant will change! */
@@ -28,19 +27,18 @@ public class HammingCode implements ICoder {
             /* End of constant block of code */
         }
         out.addByteArray(parityBits.toByteArray());
-        return out.toByteArray();
+        return out;
     }
 
     @Override
-    public byte[] decodeByteString(byte[] sequence) throws DecodingException {
-        BitStream in = new BitStream(sequence);
+    public BitStream decodeBitStream(BitStream sequence) throws DecodingException {
         BitStream out = new BitStream();
         long i;
-        for (i = 0; i < in.size() * BITS_OF_DATA / (BITS_OF_DATA + PARITY_BITS) - BITS_OF_DATA - PARITY_BITS; i += BitStream.BYTE_SIZE) {
-            out.addByte(in.readByte());  // Wrong! Check on the way...
+        for (i = 0; i < sequence.size() * BITS_OF_DATA / (BITS_OF_DATA + PARITY_BITS) - BITS_OF_DATA - PARITY_BITS; i += BitStream.BYTE_SIZE) {
+            out.addByte(sequence.readByte());  // Wrong! Check on the way...
         }
         byte[] dataBits = out.toByteArray();
         // TODO check for errors, fix them if possible
-        return dataBits;
+        return out;  // ???
     }
 }
