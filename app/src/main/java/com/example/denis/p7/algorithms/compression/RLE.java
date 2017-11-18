@@ -42,6 +42,7 @@ public class RLE implements ICompressor {
             outStream.addNumber(curCount, lengthBitSize);
         }
 
+        outStream.reset();
         return outStream;
     }
 
@@ -70,6 +71,7 @@ public class RLE implements ICompressor {
             }
         }
 
+        outStream.reset();
         return outStream;
     }
 

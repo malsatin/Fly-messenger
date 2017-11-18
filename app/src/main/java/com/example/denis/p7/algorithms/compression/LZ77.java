@@ -79,6 +79,7 @@ public class LZ77 implements ICompressor {
         }
         //System.out.println(output.toString());
 
+        output.reset();
         return output;
     }
 
@@ -123,6 +124,7 @@ public class LZ77 implements ICompressor {
             }
         }
 
+        output.reset();
         return output;
     }
 
