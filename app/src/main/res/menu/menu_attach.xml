@@ -8,5 +8,9 @@
         android:id="@+id/audio"
         android:title="@string/audio" />
     />
+    <item
+        android:id="@+id/textFile"
+        android:title="@string/textFile" />
+    />
 
 </menu>

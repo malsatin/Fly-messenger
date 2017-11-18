@@ -1,11 +1,12 @@
 <resources>
     <dimen name="fab_margin">8dp</dimen>
-    <dimen name="bigText">22sp</dimen>
-    <dimen name="maxSizeOfImage">100dp</dimen>
-    <dimen name="maxSizeOfFile">50dp</dimen>
-    <dimen name="marginFromMsgLL">5dp</dimen>
-    <dimen name="marginToMsgLL">70dp</dimen>
+    <dimen name="bigText">17sp</dimen>
+    <dimen name="middleText">7sp</dimen>
+    <dimen name="maxSizeOfImage">200dp</dimen>
+    <dimen name="maxSizeOfFile">48dp</dimen>
+    <dimen name="marginStartMsgLL">5dp</dimen>
+    <dimen name="marginEndMsgLL">70dp</dimen>
     <dimen name="marginSemiIntervalMsgLL">5dp</dimen>
-    <dimen name="marginLeftMsgTV">15dp</dimen>
+    <dimen name="marginStartMsgTV">15dp</dimen>
     <dimen name="marginLostMsgTV">10dp</dimen>
 </resources>
