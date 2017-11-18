@@ -183,7 +183,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                 return true;
             case R.id.clear:
                 AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.AppCompatAlertDialogStyle);
-                builder.setTitle("Enter password for clear the database:");
+                builder.setTitle("Enter password for clear database from server:");
                 EditText password = new EditText(this);
                 password.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
                 password.setTransformationMethod(PasswordTransformationMethod.getInstance());
@@ -440,12 +440,10 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
 
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     protected void onResume() {
         super.onResume();
         Log.d(first.TAG, "second.class onResume");
-
     }
 
     @Override
@@ -538,7 +536,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                         compressedStream.write((new RLE()).compressByteString(codedStream.toByteArray()));
                         break;
                 }
-                outStream.write(bytes[0]);      //TODO replace on codedStream.toByteArray()
+                outStream.write(codedStream.toByteArray());
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -697,7 +695,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                             infoTV.setLayoutParams(msgOutLParamsTV);
                         }
 
-                        s = ByteHelper.getStringFromBytes(msg);     //TODO replace on decodedStream.toByteArray()
+                        s = ByteHelper.getStringFromBytes(decodedStream.toByteArray());     //TODO replace on decodedStream.toByteArray()
                         msgTV.setText(s);
                         infoTV.setText(info);
 
@@ -729,7 +727,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                         System.arraycopy(bytes[i], 23, exten, 0, 20);
                         path = getApplicationInfo().dataDir + "/f" + k + "." + ByteHelper.getStringFromBytes(exten);
                         try {
-                            ByteHelper.writeBytesToFile(msg, path);     //TODO replace on decodedStream.toByteArray()
+                            ByteHelper.writeBytesToFile(decodedStream.toByteArray(), path);     //TODO replace on decodedStream.toByteArray()
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -773,7 +771,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                         System.arraycopy(bytes[i], 23, exten, 0, 20);
                         path = getApplicationInfo().dataDir + "/f" + k + "." + ByteHelper.getStringFromBytes(exten);
                         try {
-                            ByteHelper.writeBytesToFile(msg, path);     //TODO replace on decodedStream.toByteArray()
+                            ByteHelper.writeBytesToFile(decodedStream.toByteArray(), path);     //TODO replace on decodedStream.toByteArray()
                         } catch (IOException e) {
                             e.printStackTrace();
                         }

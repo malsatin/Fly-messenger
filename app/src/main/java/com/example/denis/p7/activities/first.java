@@ -1,9 +1,7 @@
 package com.example.denis.p7.activities;
 
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -87,7 +85,6 @@ public class first extends AppCompatActivity implements View.OnClickListener {
         Log.e(TAG, "first.class onStop");
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     protected void onDestroy() {
         super.onDestroy();

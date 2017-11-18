@@ -8,8 +8,8 @@
     <string name="yNickname">Your nickname</string>
     <string name="hintCoding">Coding/decoding algorithm</string>
     <string name="hintCompression">Compression algorithm</string>
-    <string name="chatting">Chatting</string>
-    <string name="clear">Clear</string>
+    <string name="chatting">General chat</string>
+    <string name="clear">Clear history</string>
     <string name="coding1">Hamming</string>
     <string name="coding2">Parity</string>
     <string name="coding3">Repetition</string>
