@@ -46,6 +46,7 @@ public class CompressionTest {
 
             System.out.println("Before compression: " + testStr);
             System.out.println("After compression:  " + str2);
+            System.out.println(testStr.equals(str2) ? "+ Test passed" : "- Test failed!");
             System.out.println("Initial size: " + in.length);
             System.out.println("Compressed size: " + comp.length);
             System.out.println("Decompressed size: " + res.length);

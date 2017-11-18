@@ -28,6 +28,7 @@ public class Huffman implements ICompressor {
         BitStream encoded = encodeMessage(codes, message);
         BitStream stream = serializeMessage(frequencyMap, encoded);
 
+        stream.reset();
         return stream;
     }
 
@@ -55,6 +56,7 @@ public class Huffman implements ICompressor {
             message.addByte(current.getValue());
         }
 
+        message.reset();
         return message;
     }
 
