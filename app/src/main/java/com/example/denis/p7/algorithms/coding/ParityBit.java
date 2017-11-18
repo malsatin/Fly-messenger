@@ -10,6 +10,10 @@ public class ParityBit implements ICoder {
 
     @Override
     public BitStream encodeBitStream(BitStream message) {
+        if (message.size() % BITS_OF_DATA != 0) {
+            throw new IllegalArgumentException("wrong message length");
+        }
+        message.reset();
         BitStream out = new BitStream();
         long i, j, cur, control;
         for (i = 0; i < message.size(); i += BITS_OF_DATA) {
@@ -21,12 +25,12 @@ public class ParityBit implements ICoder {
             }
             out.addBit((control & 1L) == 1);
         }
-        out.reset();
         return out;
     }
 
     @Override
     public BitStream decodeBitStream(BitStream sequence) throws DecodingException {
+        sequence.reset();
         BitStream out = new BitStream();
         long i, j, cur, control;
         for (i = 0; i < sequence.size() - BITS_OF_DATA; i += BIT_PORTIONS) {
@@ -40,7 +44,6 @@ public class ParityBit implements ICoder {
             }
             out.addNumber(cur >>> 1, BITS_OF_DATA);
         }
-        out.reset();
         return out;
     }
 }

@@ -9,6 +9,7 @@ public class RepetitionCode implements ICoder {
 
     @Override
     public BitStream encodeBitStream(BitStream message) {
+        message.reset();
         BitStream answer = new BitStream();
 
         while (message.hasBits()) {
@@ -18,12 +19,12 @@ public class RepetitionCode implements ICoder {
             }
         }
 
-        answer.reset();
         return answer;
     }
 
     @Override
     public BitStream decodeBitStream(BitStream sequence) throws DecodingException {
+        sequence.reset();
         BitStream answer = new BitStream();
 
         while (sequence.hasBits()) {
@@ -35,7 +36,6 @@ public class RepetitionCode implements ICoder {
             answer.addBit((bits[0] && bits[1]) || (bits[1] && bits[2]) || (bits[0] && bits[2]));
         }
 
-        answer.reset();
         return answer;
     }
 }

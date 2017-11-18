@@ -32,6 +32,8 @@ public interface ICoder {
 
     /**
      * Get new BitStream that is encoded by the current coding algorithm.
+     * <p>
+     * NOTE: BitStream becomes done after the execution
      *
      * @param message Sequence of bits to encode using current coding algorithm
      * @return Encoded sequence
@@ -40,6 +42,8 @@ public interface ICoder {
 
     /**
      * Get new BitStream that is decoded version of a code previously encoded by the current algorithm.
+     * <p>
+     * NOTE: BitStream becomes done after the execution
      *
      * @param sequence Sequence of bits to decode which was previously encoded using current algorithm
      * @return Decoded message
