@@ -26,7 +26,7 @@ public class CompressionTest {
             System.out.println(algo.getClass().getSimpleName() + ":\n");
 
             byte[] input = in.clone();
-            byte[] comp = algo.compressByteString(input);
+            byte[] comp = algo.compressByteString(input).toByteArray();
 
             /*System.out.println(algo.debugOutput(out));
             System.out.println(new BitStream(out).toString());
@@ -35,7 +35,7 @@ public class CompressionTest {
 
             /*System.out.println("\nDecompression:\n");*/
 
-            byte[] res = algo.decompressByteString(comp);
+            byte[] res = algo.decompressByteString(comp).toByteArray();
             str2 = ByteHelper.getStringFromBytes(res);
 
             /*System.out.println(new BitStream(res).toString());

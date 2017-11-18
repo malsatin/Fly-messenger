@@ -36,19 +36,18 @@ public class LZ77 implements ICompressor {
     }
 
     @Override
-    public byte[] compressByteString(byte[] message) {
-        BitStream input = new BitStream(message);
+    public BitStream compressBitStream(BitStream inStream) {
         BitStream output = new BitStream();
 
         LinkedList<Byte> window = new LinkedList<>();
         ArrayList<Byte> frame;
-        while(input.hasBits()) {
+        while(inStream.hasBits()) {
             int lastOccurrence = -1;
             int curOccurrence = 0;
 
             frame = new ArrayList<>(FRAME_SIZE);
-            while(input.hasBits() && frame.size() < FRAME_SIZE) {
-                frame.add(input.readByte());
+            while(inStream.hasBits() && frame.size() < FRAME_SIZE) {
+                frame.add(inStream.readByte());
 
                 curOccurrence = findInWindow(window, frame);
                 if(curOccurrence == -1) {
@@ -64,7 +63,7 @@ public class LZ77 implements ICompressor {
             } else {
                 if(curOccurrence == -1) {
                     frame.remove(frame.size() - 1);
-                    input.revert(BitStream.BYTE_SIZE);
+                    inStream.revert(BitStream.BYTE_SIZE);
                 }
 
                 output.addBit(1);
@@ -80,32 +79,36 @@ public class LZ77 implements ICompressor {
         }
         //System.out.println(output.toString());
 
-        return output.toByteArray();
+        return output;
     }
 
     @Override
-    public byte[] decompressByteString(byte[] sequence) throws DecompressionException {
-        BitStream input = new BitStream(sequence);
+    public BitStream compressByteString(byte[] message) {
+        return compressBitStream(new BitStream(message));
+    }
+
+    @Override
+    public BitStream decompressBitStream(BitStream inStream) throws DecompressionException {
         BitStream output = new BitStream();
 
         LinkedList<Byte> window = new LinkedList<>();
-        while(input.hasBits()) {
-            boolean newByte = !input.readBit();
+        while(inStream.hasBits()) {
+            boolean newByte = !inStream.readBit();
             byte[] bytesToAdd;
 
             if(newByte) {
-                if(input.bitsRemain() < BitStream.BYTE_SIZE) {
+                if(inStream.bitsRemain() < BitStream.BYTE_SIZE) {
                     break;  // Now remains zero information, so we are stopping
                 }
 
-                bytesToAdd = new byte[] {input.readByte()};
+                bytesToAdd = new byte[] {inStream.readByte()};
             } else {
-                if(input.bitsRemain() < lookbackBitSize + lengthBitSize) {
+                if(inStream.bitsRemain() < lookbackBitSize + lengthBitSize) {
                     throw new DecompressionException("Data seems to be corrupted");
                 }
 
-                int windowIndex = window.size() - (int)input.readNumber(lookbackBitSize);
-                int sequenceLength = (int)input.readNumber(lengthBitSize);
+                int windowIndex = window.size() - (int)inStream.readNumber(lookbackBitSize);
+                int sequenceLength = (int)inStream.readNumber(lengthBitSize);
 
                 bytesToAdd = readFromWindow(window, windowIndex, sequenceLength);
             }
@@ -120,7 +123,12 @@ public class LZ77 implements ICompressor {
             }
         }
 
-        return output.toByteArray();
+        return output;
+    }
+
+    @Override
+    public BitStream decompressByteString(byte[] sequence) throws DecompressionException {
+        return decompressBitStream(new BitStream(sequence));
     }
 
     public String debugOutput(byte[] stream) {

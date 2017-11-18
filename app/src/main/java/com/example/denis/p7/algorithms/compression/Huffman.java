@@ -9,7 +9,12 @@ import java.util.*;
 public class Huffman implements ICompressor {
 
     @Override
-    public byte[] compressByteString(byte[] message) {
+    public BitStream compressBitStream(BitStream inStream) {
+        return compressByteString(inStream.toByteArray());
+    }
+
+    @Override
+    public BitStream compressByteString(byte[] message) {
         Map<Byte, Integer> frequencyMap = countFrequency(message);
         Node root = buildTree(frequencyMap);
 
@@ -23,13 +28,11 @@ public class Huffman implements ICompressor {
         BitStream encoded = encodeMessage(codes, message);
         BitStream stream = serializeMessage(frequencyMap, encoded);
 
-        return stream.toByteArray();
+        return stream;
     }
 
     @Override
-    public byte[] decompressByteString(byte[] inputStream) throws DecompressionException {
-        BitStream inStream = new BitStream(inputStream);
-
+    public BitStream decompressBitStream(BitStream inStream) throws DecompressionException {
         Map<Byte, Integer> frequencyMap = deserializeMap(inStream);
         Node root = buildTree(frequencyMap);
 
@@ -52,7 +55,12 @@ public class Huffman implements ICompressor {
             message.addByte(current.getValue());
         }
 
-        return message.toByteArray();
+        return message;
+    }
+
+    @Override
+    public BitStream decompressByteString(byte[] inputStream) throws DecompressionException {
+        return decompressBitStream(new BitStream(inputStream));
     }
 
     private Map<Byte, Integer> countFrequency(byte[] message) {

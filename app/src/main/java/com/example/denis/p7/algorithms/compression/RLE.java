@@ -24,8 +24,7 @@ public class RLE implements ICompressor {
     }
 
     @Override
-    public byte[] compressByteString(byte[] message) {
-        BitStream inStream = new BitStream(message);
+    public BitStream compressBitStream(BitStream inStream) {
         BitStream outStream = new BitStream();
 
         while(inStream.hasBits()) {
@@ -43,12 +42,16 @@ public class RLE implements ICompressor {
             outStream.addNumber(curCount, lengthBitSize);
         }
 
-        return outStream.toByteArray();
+        return outStream;
     }
 
     @Override
-    public byte[] decompressByteString(byte[] sequence) throws DecompressionException {
-        BitStream inStream = new BitStream(sequence);
+    public BitStream compressByteString(byte[] message) {
+        return compressBitStream(new BitStream(message));
+    }
+
+    @Override
+    public BitStream decompressBitStream(BitStream inStream) throws DecompressionException {
         BitStream outStream = new BitStream();
 
         while(inStream.hasBits()) {
@@ -67,7 +70,12 @@ public class RLE implements ICompressor {
             }
         }
 
-        return outStream.toByteArray();
+        return outStream;
+    }
+
+    @Override
+    public BitStream decompressByteString(byte[] sequence) throws DecompressionException {
+        return decompressBitStream(new BitStream(sequence));
     }
 
     private static int convertToBitCount(int length) {
