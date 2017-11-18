@@ -10,6 +10,10 @@ public class HammingCode implements ICoder {
 
     @Override
     public BitStream encodeBitStream(BitStream message) {
+        if (message.size() % BITS_OF_DATA != 0) {
+            throw new IllegalArgumentException("wrong message length");
+        }
+        message.reset();
         BitStream out = new BitStream();
         BitStream parityBits = new BitStream();
         long[] data = new long[BITS_OF_DATA];
@@ -32,13 +36,32 @@ public class HammingCode implements ICoder {
 
     @Override
     public BitStream decodeBitStream(BitStream sequence) throws DecodingException {
+        sequence.reset();
         BitStream out = new BitStream();
         long i;
-        for (i = 0; i < sequence.size() * BITS_OF_DATA / (BITS_OF_DATA + PARITY_BITS) - BITS_OF_DATA - PARITY_BITS; i += BitStream.BYTE_SIZE) {
-            out.addByte(sequence.readByte());  // Wrong! Check on the way...
+        long dataLength = sequence.size() * BITS_OF_DATA / (BITS_OF_DATA + PARITY_BITS) - BITS_OF_DATA - PARITY_BITS;
+        for (i = 0; i < dataLength; i += BitStream.BYTE_SIZE) {
+            out.addByte(sequence.readByte());
         }
-        byte[] dataBits = out.toByteArray();
-        // TODO check for errors, fix them if possible
-        return out;  // ???
+        long[] data = new long[BITS_OF_DATA];
+        long[] parityRes = new long[PARITY_BITS];
+        int j;
+        for (i = 0; i < out.size(); i += BITS_OF_DATA) {
+            for (j = 0; j < BITS_OF_DATA; ++j) {
+                data[j] = out.readBit() ? 1L : 0L;
+            }
+            /* Attention! Constant block of code. To be refactored if any of constants above constant will change! */
+            parityRes[0] = sequence.readNumber(1) ^ data[0] ^ data[1] ^ data[3];
+            parityRes[1] = sequence.readNumber(1) ^ data[0] ^ data[2] ^ data[3];
+            parityRes[1] = sequence.readNumber(1) ^ data[1] ^ data[2] ^ data[3];
+            /* End of constant block of code */
+            for (j = 0; j < PARITY_BITS; ++j) {
+                if (parityRes[j] != 0L) {
+                    throw new DecodingException("Error detected while decoding! Please, ask for the data again.");
+                }
+            }
+        }
+        out.reset();
+        return out;
     }
 }
