@@ -27,7 +27,7 @@ public class CodingTest {
             try {
 //                ByteHelper.writeBytesToFile(alg.decodeByteString(code),
 //                        alg.getClass().getSimpleName() + "_" + IN_FILE_NAME);
-                System.out.println(ByteHelper.getStringFromBytes(alg.decodeByteString(code)) + '\n');
+                System.out.println(alg.getClass().getSimpleName() + " `" + ByteHelper.getStringFromBytes(alg.decodeByteString(code)) + "`\n");
             } catch (DecodingException e) {
                 e.printStackTrace();
             }

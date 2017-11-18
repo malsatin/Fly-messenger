@@ -1,11 +1,11 @@
 package com.example.denis.p7.algorithms.compression;
 
 public class Node {
+
     Node left;
     Node right;
     byte value;
     Integer weight;
-
 
     public Node() {
         left = null;

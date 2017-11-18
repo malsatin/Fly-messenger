@@ -2,7 +2,6 @@ package com.example.denis.p7.algorithms.helpers;
 
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * BitStream makes work with bits simpler.
@@ -135,6 +134,12 @@ public class BitStream {
         return bits;
     }
 
+    /**
+     * Reads some count of nits into long number
+     *
+     * @param bitsCount
+     * @return
+     */
     public long readNumber(int bitsCount) {
         if(bitsCount > LONG_SIZE) {
             throw new InvalidParameterException("Can't return more than 64 bits");

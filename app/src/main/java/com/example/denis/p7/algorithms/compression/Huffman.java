@@ -1,136 +1,153 @@
 package com.example.denis.p7.algorithms.compression;
+
+import com.example.denis.p7.algorithms.exceptions.DecompressionException;
 import com.example.denis.p7.algorithms.helpers.BitStream;
+import com.example.denis.p7.algorithms.interfaces.ICompressor;
 
 import java.util.*;
 
-public class Huffman {
-    private Node root;
-    private int size;
-    private BitStream stream;
+public class Huffman implements ICompressor {
 
+    @Override
     public byte[] compressByteString(byte[] message) {
-        this.size = message.length;
-        Map<Byte, Integer> map = countFrequency(message);
-        this.root = buildTree(map);
+        Map<Byte, Integer> frequencyMap = countFrequency(message);
+        Node root = buildTree(frequencyMap);
+
         Map<Byte, String> codes = new HashMap<>();
-        if (root.isLeaf()) {
+        if(root.isLeaf()) {
             codes.put(root.getValue(), "0");
         } else {
             generateCode(root, codes, "");
         }
-        byte[] encoded = encodeMessage(codes, message);
-        stream = serializeMessage(encoded, map);
-        return encoded;
+
+        BitStream encoded = encodeMessage(codes, message);
+        BitStream stream = serializeMessage(frequencyMap, encoded);
+
+        return stream.toByteArray();
     }
 
+    @Override
+    public byte[] decompressByteString(byte[] inputStream) throws DecompressionException {
+        BitStream inStream = new BitStream(inputStream);
 
-    public BitStream getStream() {
-        return stream;
-    }
+        Map<Byte, Integer> frequencyMap = deserializeMap(inStream);
+        Node root = buildTree(frequencyMap);
 
-    public byte[] decompressByteString(BitStream inStream) {
-        Map<Byte, Integer> map = deserializeMap(inStream);
-        int size = inStream.readInt();
-        byte[] sequence = deserializeMessage(inStream);
-        Node root = buildTree(map);
-        byte[] message = new byte[size];
-        BitStream stream = new BitStream(sequence);
-        int i = 0;
-        while (i < size) {
-            Node current = root;
-            while (current.left != null) {
-                if (!stream.readBit()) {
-                    current = current.getLeft();
-                } else {
-                    current = current.getRight();
-                }
-            }
-            message[i] = current.getValue();
-            i++;
+        int messageSize = 0; // Message size is sum of all frequencies
+        for(Map.Entry<Byte, Integer> entry : frequencyMap.entrySet()) {
+            messageSize += entry.getValue();
         }
-        return message;
+
+        BitStream message = new BitStream();
+        for(int i = 0; i < messageSize; i++) {
+            Node current = root;
+            while(!current.isLeaf()) {
+                if(!inStream.hasBits()) {
+                    throw new DecompressionException("Not in the leaf, but stream already ended");
+                }
+
+                current = inStream.readBit() ? current.getRight() : current.getLeft();
+            }
+
+            message.addByte(current.getValue());
+        }
+
+        return message.toByteArray();
     }
 
     private Map<Byte, Integer> countFrequency(byte[] message) {
         Map<Byte, Integer> map = new HashMap<>();
-        for (int i = 0; i < message.length; i++) {
-            if (map.containsKey(message[i])) {
-                map.put(message[i], map.get(message[i]) + 1);
+        for(byte oneByte : message) {
+            if(map.containsKey(oneByte)) {
+                map.put(oneByte, map.get(oneByte) + 1);
             } else {
-                map.put(message[i], 1);
+                map.put(oneByte, 1);
             }
         }
+
         return map;
     }
 
     private Node buildTree(Map<Byte, Integer> map) {
-        Queue<Node> queue = new PriorityQueue<Node>(map.size(), new MyComparator());
-        for (Map.Entry<Byte, Integer> entry : map.entrySet()) {
+        Queue<Node> queue = new PriorityQueue<>(map.size(), Comparator.comparingInt(Node::getWeight));
+        for(Map.Entry<Byte, Integer> entry : map.entrySet()) {
             queue.add(new Node(entry.getKey(), entry.getValue()));
         }
 
-        while (queue.size() > 1) {
+        while(queue.size() > 1) {
             Node node1 = queue.remove();
             Node node2 = queue.remove();
-            Node node = new Node(node1.getWeight() + node2.getWeight(), node1, node2);
-            queue.add(node);
+            Node newNode = new Node(node1.getWeight() + node2.getWeight(), node1, node2);
+
+            queue.add(newNode);
         }
 
         return queue.remove();
     }
 
-    private static void generateCode(Node node, Map<Byte, String> map, String s) {
-        if (node.isLeaf()) {
-            map.put(node.getValue(), s);
-            return;
+    private void generateCode(Node node, Map<Byte, String> codesMap, String codeString) {
+        if(node.isLeaf()) {
+            codesMap.put(node.getValue(), codeString);
+        } else {
+            generateCode(node.left, codesMap, codeString + '0');
+            generateCode(node.right, codesMap, codeString + '1');
         }
-        generateCode(node.left, map, s + '0');
-        generateCode(node.right, map, s + '1');
     }
 
-    private static byte[] encodeMessage(Map<Byte, String> map, byte[] message) {
-
+    private BitStream encodeMessage(Map<Byte, String> codesMap, byte[] message) {
         BitStream encoded = new BitStream();
 
-        for (int i = 0; i < message.length; i++) {
-            String code = map.get(message[i]);
-            for (int j = 0; j < code.length(); j++) {
-                encoded.addBit(code.charAt(j) == '1' ? 1 : 0);
+        for(byte oneByte : message) {
+            String code = codesMap.get(oneByte);
+
+            for(int i = 0; i < code.length(); i++) {
+                encoded.addBit(code.charAt(i) == '1');
             }
         }
-        return encoded.toByteArray();
+
+        return encoded;
     }
 
-    private BitStream serializeMessage(byte[] message, Map<Byte, Integer> map) {
+    private BitStream serializeMessage(Map<Byte, Integer> frequencyMap, BitStream message) {
         BitStream stream = new BitStream();
-        stream.addInt(map.size());
-        for (Map.Entry<Byte, Integer> entry : map.entrySet()) {
+
+        // Find maximum length of number to represent frequency
+        int maxLength = 0;
+        for(Map.Entry<Byte, Integer> entry : frequencyMap.entrySet()) {
+            int tmpLength = countBitLength(entry.getValue());
+
+            maxLength = Math.max(maxLength, tmpLength);
+        }
+
+        stream.addInt(frequencyMap.size());
+        stream.addInt(maxLength);
+        for(Map.Entry<Byte, Integer> entry : frequencyMap.entrySet()) {
             stream.addByte(entry.getKey());
-            stream.addInt(entry.getValue());
+            stream.addNumber((long)entry.getValue(), maxLength);
         }
-        stream.addInt(size);
-        stream.addInt(message.length);
-        for (int i = 0; i < message.length; i++) {
-            stream.addByte(message[i]);
+
+        // We don't need to store message or code length, because Huffman codes are prefix-free
+        while(message.hasBits()) {
+            stream.addBit(message.readBit());
         }
+
         return stream;
     }
 
     private Map<Byte, Integer> deserializeMap(BitStream stream) {
         Map<Byte, Integer> map = new HashMap<>();
-        int size = stream.readInt();
-        for (int i = 0; i < size; i++) {
-            map.put(stream.readByte(), stream.readInt());
+
+        int entriesCount = stream.readInt();
+        int frequencySize = stream.readInt();
+        for(int i = 0; i < entriesCount; i++) {
+            map.put(stream.readByte(), (int)stream.readNumber(frequencySize));
         }
+
         return map;
     }
 
-    private byte[] deserializeMessage(BitStream stream) {
-        int size = stream.readInt();
-        byte[] message = new byte[size];
-        for (int i = 0; i < size; i++) {
-            message[i] = stream.readByte();
-        }
-        return message;
+    private static int countBitLength(int number) {
+        return (int)(Math.log(number) / Math.log(2)) + 1;
     }
+
 }
