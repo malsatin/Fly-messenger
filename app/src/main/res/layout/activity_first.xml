@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.denis.p7.activities.first">
+    tools:context="com.example.denis.p7.activities.first"
+    android:background="@drawable/fon">
 
     <android.support.constraint.Guideline
         android:id="@+id/line_1"
@@ -65,9 +66,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@color/colorPrimary"
+            android:background="@drawable/button_primary"
             android:text="@string/startChatting"
-            android:textColor="@color/yait"
+            android:textColor="@color/colorAccent"
             android:textSize="@dimen/bigText" />
 
     </LinearLayout>

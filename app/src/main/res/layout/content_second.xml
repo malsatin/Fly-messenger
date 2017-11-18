@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/fon"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.example.denis.p7.activities.second"
     tools:showIn="@layout/activity_second">
@@ -65,7 +66,6 @@
     <ScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:background="@color/fon"
         app:layout_constraintBottom_toTopOf="@id/cl2"
         app:layout_constraintHeight_default="spread"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -81,25 +81,53 @@
             android:orientation="vertical">
 
             <LinearLayout
-                android:id="@+id/msgTextLL"
+                android:id="@+id/msgTextInLL"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom"
                 android:layout_marginBottom="@dimen/marginSemiIntervalMsgLL"
-                android:layout_marginLeft="@dimen/marginFromMsgLL"
-                android:layout_marginRight="@dimen/marginToMsgLL"
+                android:layout_marginLeft="@dimen/marginStartMsgLL"
+                android:layout_marginRight="@dimen/marginEndMsgLL"
                 android:layout_marginTop="@dimen/marginSemiIntervalMsgLL"
                 android:background="@drawable/msg_in"
+                android:gravity="left"
                 android:orientation="vertical"
                 android:visibility="gone">
 
                 <TextView
-                    android:id="@+id/msgTV"
+                    android:id="@+id/msgInTV"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="@dimen/marginLostMsgTV"
-                    android:layout_marginLeft="@dimen/marginLeftMsgTV"
+                    android:layout_marginLeft="@dimen/marginStartMsgTV"
                     android:layout_marginRight="@dimen/marginLostMsgTV"
+                    android:layout_marginTop="@dimen/marginLostMsgTV"
+                    android:clickable="true"
+                    android:gravity="left"
+                    android:text="@string/coding3" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/msgTextOutLL"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|right"
+                android:layout_marginBottom="@dimen/marginSemiIntervalMsgLL"
+                android:layout_marginLeft="@dimen/marginEndMsgLL"
+                android:layout_marginRight="@dimen/marginStartMsgLL"
+                android:layout_marginTop="@dimen/marginSemiIntervalMsgLL"
+                android:background="@drawable/msg_out"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/msgOutTV"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/marginLostMsgTV"
+                    android:layout_marginLeft="@dimen/marginLostMsgTV"
+                    android:layout_marginRight="@dimen/marginStartMsgTV"
                     android:layout_marginTop="@dimen/marginLostMsgTV"
                     android:clickable="true"
                     android:text="@string/example" />
@@ -107,17 +135,18 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/msgImageLL"
+                android:id="@+id/msgImageInLL"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom"
                 android:layout_marginBottom="@dimen/marginSemiIntervalMsgLL"
-                android:layout_marginLeft="@dimen/marginFromMsgLL"
-                android:layout_marginRight="@dimen/marginToMsgLL"
+                android:layout_marginLeft="@dimen/marginStartMsgLL"
+                android:layout_marginRight="@dimen/marginEndMsgLL"
                 android:layout_marginTop="@dimen/marginSemiIntervalMsgLL"
                 android:background="@drawable/msg_photo"
                 android:orientation="vertical"
                 android:visibility="gone">
+
                 <TextView
                     android:id="@+id/senderTV"
                     android:layout_width="match_parent"
@@ -132,9 +161,10 @@
                     android:layout_margin="@dimen/marginLostMsgTV"
                     android:background="@drawable/fon"
                     android:clickable="true" />
+
                 <TextView
                     android:id="@+id/infoTV"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_margin="@dimen/marginLostMsgTV"
                     android:text="@string/example" />
@@ -146,11 +176,10 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom"
                 android:layout_marginBottom="@dimen/marginSemiIntervalMsgLL"
-                android:layout_marginLeft="@dimen/marginFromMsgLL"
-                android:layout_marginRight="@dimen/marginToMsgLL"
+                android:layout_marginLeft="@dimen/marginStartMsgTV"
+                android:layout_marginRight="@dimen/marginEndMsgLL"
                 android:layout_marginTop="@dimen/marginSemiIntervalMsgLL"
                 android:background="@drawable/msg_photo"
-                android:gravity="center"
                 android:orientation="horizontal"
                 android:visibility="gone">
 
@@ -167,7 +196,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_margin="@dimen/marginLostMsgTV"
-                    android:text="@string/example"  />
+                    android:text="@string/example" />
 
             </LinearLayout>
         </LinearLayout>

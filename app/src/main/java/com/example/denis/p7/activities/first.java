@@ -1,7 +1,9 @@
 package com.example.denis.p7.activities;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -15,9 +17,9 @@ import com.example.denis.p7.R;
 public class first extends AppCompatActivity implements View.OnClickListener {
     Button button;
     EditText nicknameET;
-    final static String codingTypeString = "CODING_TYPE";
-    final static String compressionTypeString = "COMPRESSION_TYPE";
-    final static String nickname = "NICKNAME";
+    static int codingType;
+    static int compressionType;
+    static String nickname;
     final static String TAG = "MY_TAG";
     Spinner codingSpinner;
     Spinner compressionSpinner;
@@ -28,7 +30,7 @@ public class first extends AppCompatActivity implements View.OnClickListener {
         setContentView(R.layout.activity_first);
         Log.e(TAG, "first.class onCreate");
 
-        nicknameET=(EditText)findViewById(R.id.nicknameET);
+        nicknameET = (EditText) findViewById(R.id.nicknameET);
         button = (Button) findViewById(R.id.button);
         button.setOnClickListener(this);
 
@@ -47,9 +49,9 @@ public class first extends AppCompatActivity implements View.OnClickListener {
         switch (v.getId()) {
             case R.id.button:
                 Intent intent = new Intent(this, second.class);
-                intent.putExtra(codingTypeString, codingSpinner.getSelectedItemPosition());
-                intent.putExtra(compressionTypeString, compressionSpinner.getSelectedItemPosition());
-                intent.putExtra(nickname, nicknameET.getText().toString());
+                codingType = codingSpinner.getSelectedItemPosition();
+                compressionType = compressionSpinner.getSelectedItemPosition();
+                nickname = nicknameET.getText().toString();
                 startActivity(intent);
                 break;
         }
@@ -85,9 +87,11 @@ public class first extends AppCompatActivity implements View.OnClickListener {
         Log.e(TAG, "first.class onStop");
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     protected void onDestroy() {
         super.onDestroy();
         Log.e(TAG, "first.class onDestroy");
+        System.exit(0);
     }
 }

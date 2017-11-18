@@ -17,7 +17,7 @@
         <activity
             android:configChanges="orientation|screenSize"
             android:name=".activities.first"
-            android:launchMode="singleTask"
+            android:launchMode="singleInstance"
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="stateHidden">
             <intent-filter>

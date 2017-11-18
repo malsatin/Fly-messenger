@@ -4,10 +4,9 @@
     tools:context="com.example.denis.p7.activities.second">
 
     <item
-        android:id="@+id/action_search"
-        android:icon="@mipmap/ic_search_white_24dp"
-        android:title="@string/search"
-        app:actionViewClass="android.support.v7.widget.SearchView"
+        android:id="@+id/update"
+        android:icon="@mipmap/ic_action_cached"
+        android:title="@string/update"
         app:showAsAction="ifRoom|collapseActionView"
         android:actionLayout="@layout/activity_second"/>
 

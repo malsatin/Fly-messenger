@@ -1,15 +1,15 @@
 <resources>
-    <string name="app_name">P7</string>
+    <string name="app_name">IT Messenger</string>
     <string name="menu">Menu</string>
-    <string name="search">Search</string>
+    <string name="update">Update</string>
     <string name="image">Image</string>
     <string name="audio">Audio</string>
+    <string name="textFile">Text file</string>
     <string name="yNickname">Your nickname</string>
-    <string name="cNickname">Server IPddddddddd</string>
     <string name="hintCoding">Coding/decoding algorithm</string>
     <string name="hintCompression">Compression algorithm</string>
     <string name="chatting">Chatting</string>
-    <string name="clear">Chatting</string>
+    <string name="clear">Clear</string>
     <string name="coding1">Hamming</string>
     <string name="coding2">Parity</string>
     <string name="coding3">Repetition</string>

@@ -2,8 +2,10 @@ package com.example.denis.p7.activities;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.ContentUris;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -17,14 +19,15 @@ import android.provider.MediaStore;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.PopupMenu;
-import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
+import android.text.method.PasswordTransformationMethod;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -60,23 +63,26 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
     ActionBar ab;
     FloatingActionButton fabAttach, fabSend;
     EditText editText;
-    LinearLayout scrollLL, msgTextLL, msgImageLL;
-    LinearLayout.LayoutParams msgTextLParamsLL, msgImageLParamsLL, msgLParamsTV, msgLParamsIV;
-    TextView msgTV;
-    ImageView msgIV;
+    LinearLayout scrollLL, msgTextLL, msgImageLL, msgFileLL;
+    LinearLayout.LayoutParams msgTextInLParamsLL, msgTextOutLParamsLL, msgInLParamsTV, msgOutLParamsTV; //simple msg
+    LinearLayout.LayoutParams msgLParamsIV, msgSenderLParamsTV; //image msg
+    LinearLayout.LayoutParams msgFileLParamsIV, msgFileLParamsTV; //file msg
+    TextView msgTV, senderTV, infoTV, msgFileTV;
+    ImageView msgIV, msgFileIV;
     InputMethodManager imm;
     Intent intent;
     SendMsg sendMsg;
     GetMsgs getMsgs;
-    final int REQUEST_CODE_IMAGE = 1, REQUEST_CODE_AUDIO = 2;
+    final int REQUEST_CODE_IMAGE = 1, REQUEST_CODE_AUDIO = 2, REQUEST_CODE_TEXT_FILE = 3;
     String uri, ip = "138.197.176.233";
     TCPClient client;
     byte[] bytes;
     byte[] nickname;
-    byte b;byte space;
+    byte b;
+    byte space;
     String s;
     int k = 0, port = 3129;
-    byte codingType, compressionType, msgType;
+    byte codingType, compressionType;
 
 
     @Override
@@ -96,28 +102,33 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         // ab.setBackgroundDrawable(getResources().getDrawable(R.drawable.bar));
         ab.setTitle(R.string.chatting);
 
-        intent = getIntent();
-        codingType = (byte) intent.getIntExtra(first.codingTypeString, 5);
-        compressionType = (byte) intent.getIntExtra(first.compressionTypeString, 5);
-        bytes = ByteHelper.getBytesFromString(intent.getStringExtra(first.nickname));
-        space = ByteHelper.getBytesFromString(" ")[0];
-        nickname = new byte[20];
-        for (int i = 0; i < 20; i++) {
-            nickname[i] = (bytes.length > i) ? bytes[i] : space;
-        }
-
         client = new TCPClient(ip, port);
 
         scrollLL = (LinearLayout) findViewById(R.id.scrollLL);
-        msgTextLL = (LinearLayout) findViewById(R.id.msgTextLL);
-        msgTV = (TextView) findViewById(R.id.msgTV);
-        msgImageLL = (LinearLayout) findViewById(R.id.msgImageLL);
+
+        //simple msg
+        msgTextLL = (LinearLayout) findViewById(R.id.msgTextInLL);
+        msgTextInLParamsLL = (LinearLayout.LayoutParams) msgTextLL.getLayoutParams();
+        msgTextLL = (LinearLayout) findViewById(R.id.msgTextOutLL);
+        msgTextOutLParamsLL = (LinearLayout.LayoutParams) msgTextLL.getLayoutParams();
+        msgTV = (TextView) findViewById(R.id.msgInTV);
+        msgInLParamsTV = (LinearLayout.LayoutParams) msgTV.getLayoutParams();
+        msgTV = (TextView) findViewById(R.id.msgOutTV);
+        msgOutLParamsTV = (LinearLayout.LayoutParams) msgTV.getLayoutParams();
+
+        //image msg
         msgIV = (ImageView) findViewById(R.id.msgIV);
-        msgTextLParamsLL = (LinearLayout.LayoutParams) msgTextLL.getLayoutParams();
-        msgLParamsTV = (LinearLayout.LayoutParams) msgTV.getLayoutParams();
-        msgImageLParamsLL = (LinearLayout.LayoutParams) msgImageLL.getLayoutParams();
         msgLParamsIV = (LinearLayout.LayoutParams) msgIV.getLayoutParams();
-        // прячем клавиатуру. butCalculate - это кнопка
+        senderTV = (TextView) findViewById(R.id.senderTV);
+        msgSenderLParamsTV = (LinearLayout.LayoutParams) senderTV.getLayoutParams();
+
+        //file msg
+        msgFileIV = (ImageView) findViewById(R.id.msgFileIV);
+        msgFileLParamsIV = (LinearLayout.LayoutParams) msgFileIV.getLayoutParams();
+        msgFileTV = (TextView) findViewById(R.id.msgFileTV);
+        msgFileLParamsTV = (LinearLayout.LayoutParams) msgFileTV.getLayoutParams();
+
+        // keyboard
         imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 
         editText = (EditText) findViewById(R.id.editText);
@@ -137,12 +148,11 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
             public void afterTextChanged(Editable s) {
             }
         });
-        // прячем клавиатуру. butCalculate - это кнопка
-        imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 
         fabAttach = (FloatingActionButton) findViewById(R.id.fabAttach);
         fabSend = (FloatingActionButton) findViewById(R.id.fabSend);
         fabSend.setOnClickListener(this);
+        getMsgs = new GetMsgs();
     }
 
 
@@ -150,12 +160,6 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_second, menu);
-
-        MenuItem searchItem = menu.findItem(R.id.action_search);
-        SearchView searchView =
-                (SearchView) MenuItemCompat.getActionView(searchItem);
-
-        // Configure the search info and add any event listeners...
 
         return super.onCreateOptionsMenu(menu);
     }
@@ -171,13 +175,35 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                 intent = new Intent(this, first.class);
                 startActivity(intent);
                 return true;
-            case R.id.fullInfo:
-                ClearHistory clearHistory = new ClearHistory();
-                clearHistory.execute();
+            case R.id.update:
+                if (getMsgs.getStatus() != AsyncTask.Status.RUNNING) {
+                    getMsgs = new GetMsgs();
+                    getMsgs.execute(k);
+                }
                 return true;
             case R.id.clear:
-                getMsgs = new GetMsgs();
-                getMsgs.execute(k);
+                AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.AppCompatAlertDialogStyle);
+                builder.setTitle("Enter password for clear the database:");
+                EditText password = new EditText(this);
+                password.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                password.setTransformationMethod(PasswordTransformationMethod.getInstance());
+                builder.setView(password);
+                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (password.getText().toString().equals("wow")) {
+                            ClearHistory clearHistory = new ClearHistory();
+                            clearHistory.execute();
+                            scrollLL.removeAllViews();
+                        } else
+                            Toast.makeText(second.this, "Wrong password", Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                        imm.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
+                    }
+                });
+                builder.setNegativeButton("Cancel", null);
+                builder.show();
+
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -192,6 +218,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                 sendMsg = new SendMsg((byte) 0);
                 bytes = ByteHelper.getBytesFromString(editText.getText().toString());
                 sendMsg.execute(bytes);
+                imm.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
                 break;
         }
     }
@@ -229,6 +256,17 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                     startActivityForResult(intent, REQUEST_CODE_AUDIO);
                 }
                 break;
+
+            case R.id.textFile:
+                intent = new Intent();
+                intent.setAction(Intent.ACTION_GET_CONTENT);
+                intent.setType("text/*");
+
+                // Verify that the intent will resolve to an activity
+                if (intent.resolveActivity(getPackageManager()) != null) {
+                    startActivityForResult(intent, REQUEST_CODE_TEXT_FILE);
+                }
+                break;
         }
         return false;
     }
@@ -237,36 +275,31 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
         if (resultCode == RESULT_OK) {
+            verifyStoragePermissions(second.this);
+            Uri uri = data.getData();
+            s = getFilePath(uri);
+            byte type = (byte) 5;
             switch (requestCode) {
                 case REQUEST_CODE_IMAGE:
-                    Uri uri = data.getData();
-                    String uriS = data.getDataString();
-                    s = getFilePath(uri);
-                    sendMsg = new SendMsg((byte) 1, ByteHelper.getBytesFromString(getFileExtension(s)));
-                    try {
-                        verifyStoragePermissions(second.this);
-                        sendMsg.execute(ByteHelper.readBytesFromFile(s));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (FileTooBigException e) {
-                        e.printStackTrace();
-                    }
-
+                    type = (byte) 1;
                     break;
                 case REQUEST_CODE_AUDIO:
-                    //uri = data.getData();
-                    msgTV = new TextView(this);
-                    msgTV.setText(data.toString());
-                    //msgTV.setContentDescription(uri.toString());
-                    msgTV.setOnClickListener(onClickListenerAV);
-                    msgTV.setLayoutParams(msgTextLParamsLL);
-                    scrollLL.addView(msgTV);
+                    type = (byte) 2;
+                    break;
+                case REQUEST_CODE_TEXT_FILE:
+                    type = (byte) 3;
                     break;
             }
+            sendMsg = new SendMsg(type, ByteHelper.getBytesFromString(getFileExtension(s)));
+            try {
+                sendMsg.execute(ByteHelper.readBytesFromFile(s));
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (FileTooBigException e) {
+                e.printStackTrace();
+            }
         }
-
     }
 
     // метод возвращает полный реальный путь до файла, включая имя и расширение
@@ -341,6 +374,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
 
+
     /**
      * Checks if the app has permission to write to device storage
      * <p>
@@ -394,12 +428,24 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
     protected void onStart() {
         super.onStart();
         Log.d(first.TAG, "second.class onStart");
+        //getting info from first activity to codingType, compressionType, nickname fields
+        codingType = (byte) first.codingType;
+        compressionType = (byte) first.compressionType;
+        bytes = ByteHelper.getBytesFromString(first.nickname);
+        space = ByteHelper.getBytesFromString(" ")[0];
+        nickname = new byte[20];
+        for (int i = 0; i < 20; i++) {
+            nickname[i] = (bytes.length > i) ? bytes[i] : space;
+        }
+
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     protected void onResume() {
         super.onResume();
         Log.d(first.TAG, "second.class onResume");
+
     }
 
     @Override
@@ -429,13 +475,26 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
     class SendMsg extends AsyncTask<byte[], Void, Integer> {
         byte msgType;
         byte[] msgExtension;
+        ProgressDialog pds;
 
         SendMsg(byte msgType, byte[] msgExtension) {
             this.msgType = msgType;
             this.msgExtension = msgExtension;
         }
+
         SendMsg(byte msgType) {
             this.msgType = msgType;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            pds = new ProgressDialog(second.this);
+            pds.setProgressStyle(R.style.AppCompatAlertDialogStyle); //Set style
+            pds.setMessage("Sending message..."); //Message
+            pds.setIndeterminate(true);
+            pds.setCancelable(false);
+            pds.show();
         }
 
         @RequiresApi(api = Build.VERSION_CODES.KITKAT)
@@ -450,7 +509,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
             outStream.write(compressionType);
             try {
                 outStream.write(nickname);
-                if (msgType!=(byte)0) {
+                if (msgType != (byte) 0) {
                     byte[] exten = new byte[20];
                     for (int i = 0; i < 20; i++) {
                         exten[i] = (msgExtension.length > i) ? msgExtension[i] : space;
@@ -497,10 +556,10 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         @Override
         protected void onPostExecute(Integer response) {
             super.onPostExecute(response);
+            pds.dismiss();
             switch (response) {
                 case 0:
                     editText.setText("");
-                    imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
                     fabAttach.setVisibility(View.VISIBLE);
                     fabSend.setVisibility(View.INVISIBLE);
                     break;
@@ -521,6 +580,17 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
     }
 
     class GetMsgs extends AsyncTask<Integer, Void, byte[][]> {
+        ProgressDialog pds;
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            pds = new ProgressDialog(second.this);
+            pds.setProgressStyle(R.style.AppCompatAlertDialogStyle); //Set style
+            pds.setMessage("Updating chat..."); //Message
+            pds.setIndeterminate(true);
+            pds.setCancelable(false);
+            pds.show();
+        }
 
         @Override
         protected byte[][] doInBackground(Integer... alreadyHaveMessages) {
@@ -538,25 +608,37 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         @Override
         protected void onPostExecute(byte[][] bytes) {
             super.onPostExecute(bytes);
-            if (bytes[0] == null) return;
+            pds.dismiss();
+            if (bytes.length == 0) return;
             ByteArrayOutputStream decodedStream;
             ByteArrayOutputStream decompressedStream;
             for (int i = 0; i < bytes.length; i++) {
+                String info = "Size[bytes] - Algorithm:\n";
                 decodedStream = new ByteArrayOutputStream();
                 decompressedStream = new ByteArrayOutputStream();
-                int delta=(bytes[i][0]==0)?23:43;
+                int delta = (bytes[i][0] == 0) ? 23 : 43;
+                String path;
+                byte[] exten = new byte[20];
                 byte[] msg = new byte[bytes[i].length - delta];
                 System.arraycopy(bytes[i], delta, msg, 0, msg.length);
+                byte[] nickname = new byte[20];
+                System.arraycopy(bytes[i], 3, nickname, 0, 20);
+                info += msg.length;
+
+                //decompression type
                 try {
-                    switch (bytes[i][2]) {      //decompression type
+                    switch (bytes[i][2]) {
                         case (byte) 0:
-                            //decompressedStream.write((new Huffman()).decompressByteString(msg));
+                            decompressedStream.write((new Huffman()).decompressByteString(msg));
+                            info += "   Huffman\n";
                             break;
                         case (byte) 1:
                             decompressedStream.write((new LZ77()).decompressByteString(msg));
+                            info += "   LZ77\n";
                             break;
                         case (byte) 2:
                             decompressedStream.write((new RLE()).decompressByteString(msg));
+                            info += "   RLE\n";
                             break;
                     }
                 } catch (IOException e) {
@@ -564,55 +646,95 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                 } catch (DecompressionException e) {
                     e.printStackTrace();
                 }
+                info += decompressedStream.size();
 
+                //decoding type
                 try {
-                    switch (bytes[i][1]) {      //decoding type
+                    switch (bytes[i][1]) {
                         case (byte) 0:
                             decodedStream.write((new HammingCode()).decodeByteString(decompressedStream.toByteArray()));
+                            info += "   HammingCode\n";
                             break;
                         case (byte) 1:
                             decodedStream.write((new ParityBit()).decodeByteString(decompressedStream.toByteArray()));
+                            info += "   ParityBit\n";
                             break;
                         case (byte) 2:
                             decodedStream.write((new RepetitionCode()).decodeByteString(decompressedStream.toByteArray()));
+                            info += "   RepetitionCode\n";
                             break;
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                switch (bytes[i][0]) {      //file type
-                    case (byte) 0:      //text msg
-                        msgTextLL = new LinearLayout(second.this);
-                        msgTextLL.setBackgroundResource(R.drawable.msg_in);
-                        msgTV = new TextView(second.this);
+                info += decodedStream.size() + "   Source";
 
-                        msgTextLL.setLayoutParams(msgTextLParamsLL);
-                        msgTV.setLayoutParams(msgLParamsTV);
+                //file type
+                switch (bytes[i][0]) {
+
+                    //simple text msg
+                    case (byte) 0:
+                        msgTextLL = new LinearLayout(second.this);
+                        msgTextLL.setOrientation(LinearLayout.VERTICAL);
+                        senderTV = new TextView(second.this);
+                        msgTV = new TextView(second.this);
+                        msgTV.setTextColor(getResources().getColor(R.color.black));
+                        msgTV.setTextSize(getResources().getDimension(R.dimen.middleText));
+                        infoTV = new TextView(second.this);
+
+                        senderTV.setText("From:  " + ByteHelper.getStringFromBytes(nickname));
+                        if (!ByteHelper.getStringFromBytes(nickname).replaceAll(" ", "").equals(ByteHelper.getStringFromBytes(second.this.nickname).replaceAll(" ", ""))) {
+                            msgTextLL.setBackgroundResource(R.drawable.msg_in);
+                            msgTextLL.setLayoutParams(msgTextInLParamsLL);
+                            senderTV.setLayoutParams(msgInLParamsTV);
+                            msgTV.setLayoutParams(msgInLParamsTV);
+                            infoTV.setLayoutParams(msgInLParamsTV);
+                        } else {
+                            msgTextLL.setBackgroundResource(R.drawable.msg_out);
+                            msgTextLL.setLayoutParams(msgTextOutLParamsLL);
+                            senderTV.setLayoutParams(msgOutLParamsTV);
+                            msgTV.setLayoutParams(msgOutLParamsTV);
+                            infoTV.setLayoutParams(msgOutLParamsTV);
+                        }
 
                         s = ByteHelper.getStringFromBytes(msg);     //TODO replace on decodedStream.toByteArray()
                         msgTV.setText(s);
+                        infoTV.setText(info);
 
+                        msgTextLL.addView(senderTV);
                         msgTextLL.addView(msgTV);
+                        msgTextLL.addView(infoTV);
                         scrollLL.addView(msgTextLL);
                         break;
-                    case (byte) 1:      //image file
+
+                    //image file
+                    case (byte) 1:
                         msgImageLL = new LinearLayout(second.this);
                         msgImageLL.setBackgroundResource(R.drawable.msg_photo);
+                        msgImageLL.setOrientation(LinearLayout.VERTICAL);
+                        senderTV = new TextView(second.this);
                         msgIV = new ImageView(second.this);
+                        infoTV = new TextView(second.this);
 
-                        msgImageLL.setLayoutParams(msgImageLParamsLL);
+                        senderTV.setText("From:  " + ByteHelper.getStringFromBytes(nickname));
+                        if (!ByteHelper.getStringFromBytes(nickname).replaceAll(" ", "").equals(ByteHelper.getStringFromBytes(second.this.nickname).replaceAll(" ", ""))) {
+                            msgImageLL.setLayoutParams(msgTextInLParamsLL);
+                        } else {
+                            msgImageLL.setLayoutParams(msgTextOutLParamsLL);
+                        }
+                        senderTV.setLayoutParams(msgSenderLParamsTV);
                         msgIV.setLayoutParams(msgLParamsIV);
+                        infoTV.setLayoutParams(msgSenderLParamsTV);
 
-                        byte[] exten=new byte[20];
-                        System.arraycopy(bytes[i],23,exten,0,20);
-                        String path = getApplicationInfo().dataDir + "/i" + k +"."+ByteHelper.getStringFromBytes(exten);
+                        System.arraycopy(bytes[i], 23, exten, 0, 20);
+                        path = getApplicationInfo().dataDir + "/f" + k + "." + ByteHelper.getStringFromBytes(exten);
                         try {
                             ByteHelper.writeBytesToFile(msg, path);     //TODO replace on decodedStream.toByteArray()
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
                         try {
-                            uri=new File(path).toURI().toURL().toExternalForm();
+                            uri = new File(path).toURI().toURL().toExternalForm();
                         } catch (MalformedURLException e) {
                             e.printStackTrace();
                         }
@@ -621,11 +743,53 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
 
                         msgIV.setContentDescription(uri);
                         msgIV.setOnClickListener(onClickListenerIV);
+                        infoTV.setText(info);
 
+                        msgImageLL.addView(senderTV);
                         msgImageLL.addView(msgIV);
+                        msgImageLL.addView(infoTV);
                         scrollLL.addView(msgImageLL);
                         break;
-                    case (byte) 2:      //audio file
+
+                    //other file
+                    default:
+                        msgFileLL = new LinearLayout(second.this);
+                        msgFileLL.setBackgroundResource(R.drawable.msg_photo);
+                        msgFileLL.setOrientation(LinearLayout.HORIZONTAL);
+                        msgFileIV = new ImageView(second.this);
+                        if (bytes[i][0] == (byte) 2) msgFileIV.setImageResource(R.mipmap.audio);
+                        else msgFileIV.setImageResource(R.mipmap.text);
+                        msgFileTV = new TextView(second.this);
+
+                        msgFileTV.setText("From:  " + ByteHelper.getStringFromBytes(nickname) + "\n");
+                        if (!ByteHelper.getStringFromBytes(nickname).replaceAll(" ", "").equals(ByteHelper.getStringFromBytes(second.this.nickname).replaceAll(" ", ""))) {
+                            msgFileLL.setLayoutParams(msgTextInLParamsLL);
+                        } else {
+                            msgFileLL.setLayoutParams(msgTextOutLParamsLL);
+                        }
+                        msgFileIV.setLayoutParams(msgFileLParamsIV);
+                        msgFileTV.setLayoutParams(msgFileLParamsTV);
+
+                        System.arraycopy(bytes[i], 23, exten, 0, 20);
+                        path = getApplicationInfo().dataDir + "/f" + k + "." + ByteHelper.getStringFromBytes(exten);
+                        try {
+                            ByteHelper.writeBytesToFile(msg, path);     //TODO replace on decodedStream.toByteArray()
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        try {
+                            uri = new File(path).toURI().toURL().toExternalForm();
+                        } catch (MalformedURLException e) {
+                            e.printStackTrace();
+                        }
+
+                        msgFileIV.setContentDescription(uri);
+                        msgFileIV.setOnClickListener(onClickListenerAV);
+                        msgFileTV.setText(msgFileTV.getText() + "Type of file:  " + ByteHelper.getStringFromBytes(exten).replaceAll(" ", "") + "\n\n" + info);
+
+                        msgFileLL.addView(msgFileIV);
+                        msgFileLL.addView(msgFileTV);
+                        scrollLL.addView(msgFileLL);
                         break;
                 }
                 k++;
@@ -659,4 +823,5 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
     }
 
 }
+
 
