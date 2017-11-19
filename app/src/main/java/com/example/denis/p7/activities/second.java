@@ -70,6 +70,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
     ImageView msgIV, msgFileIV;
     InputMethodManager imm;
     Intent intent;
+    String MY_TAG_2="MY_TAG_2";
     SendMsg sendMsg;
     GetMsgs getMsgs;
     final int REQUEST_CODE_IMAGE = 1, REQUEST_CODE_AUDIO = 2, REQUEST_CODE_TEXT_FILE = 3;
@@ -100,7 +101,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         ab.setDisplayHomeAsUpEnabled(true);
         // ab.setBackgroundDrawable(getResources().getDrawable(R.drawable.bar));
         ab.setTitle(R.string.chatting);
-        k=0;
+        k = 0;
 
         client = new TCPClient(ip, port);
 
@@ -152,7 +153,6 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         fabAttach = (FloatingActionButton) findViewById(R.id.fabAttach);
         fabSend = (FloatingActionButton) findViewById(R.id.fabSend);
         fabSend.setOnClickListener(this);
-        getMsgs = new GetMsgs();
     }
 
 
@@ -176,7 +176,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                 startActivity(intent);
                 return true;
             case R.id.update:
-                if (getMsgs.getStatus() != AsyncTask.Status.RUNNING) {
+                if (getMsgs == null || getMsgs.getStatus() != AsyncTask.Status.RUNNING) {
                     getMsgs = new GetMsgs();
                     getMsgs.execute(k);
                 }
@@ -471,7 +471,8 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
     }
 
     class SendMsg extends AsyncTask<byte[], Void, Integer> {
-        byte msgType;ProgressDialog pds;
+        byte msgType;
+        ProgressDialog pds;
         byte[] msgExtension;
 
         SendMsg(byte msgType, byte[] msgExtension) {
@@ -514,6 +515,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
             }
 
             //compressing message
+            Log.d(MY_TAG_2,"Compressing message");
             switch (compressionType) {
                 case (byte) 0:
                     compressedBitStream = (new Huffman()).compressByteString(bytes[0]);
@@ -527,6 +529,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
             }
 
             //coding message
+            Log.d(MY_TAG_2,"Coding message");
             switch (codingType) {
                 case (byte) 0:
                     codedBitStream = (new HammingCode()).encodeBitStream(compressedBitStream);
@@ -549,6 +552,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
             // pds.setMessage("Sending message...");
 
             // Send bytes to server
+            Log.d(MY_TAG_2,"Send bytes to server");
             try {
                 response = client.sendMessage(block);
             } catch (IOException e) {
@@ -581,6 +585,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                     break;
             }
             pds.dismiss();
+            Log.d(MY_TAG_2,"Message was send ");
         }
     }
 
@@ -602,6 +607,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         protected byte[][] doInBackground(Integer... alreadyHaveMessages) {
             byte[][] result = new byte[0][];
             // Get messages
+            Log.d(MY_TAG_2,"Getting bytes to server");
             try {
                 result = client.getMessages(alreadyHaveMessages[0]);
             } catch (IOException e) {
@@ -631,7 +637,8 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                 byte[] nickname = new byte[20];
                 System.arraycopy(bytes[i], 3, nickname, 0, 20);
 
-                //decoding type
+                //decoding messages
+                Log.d(MY_TAG_2,"Decoding messages");
                 info += msg.length;
                 try {
                     switch (bytes[i][1]) {
@@ -652,8 +659,9 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                     e.printStackTrace();
                 }
 
-                //decompression type
-                info += decodedBitStream.size()/8;
+                //decompression messages
+                Log.d(MY_TAG_2,"Decompression messages");
+                info += decodedBitStream.size() / 8;
                 try {
                     switch (bytes[i][2]) {
                         case (byte) 0:
@@ -672,9 +680,11 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                 } catch (DecompressionException e) {
                     e.printStackTrace();
                 }
-                info += decompressedBitStream.size()/8 + "   Source";
+                info += decompressedBitStream.size() / 8 + "   Source";
 
-                //file type
+
+                //Mapping file on screen
+                Log.d(MY_TAG_2,"Mapping file on screen ");
                 switch (bytes[i][0]) {
                     //simple text msg
                     case (byte) 0:
@@ -731,7 +741,8 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                         infoTV.setLayoutParams(msgSenderLParamsTV);
 
                         System.arraycopy(bytes[i], 23, exten, 0, 20);
-                        path = getFilesDir().getPath() + "/f" + k + "." + ByteHelper.getStringFromBytes(exten);
+                        path =  getApplicationInfo().dataDir
+                                + "/f" + k + "." + ByteHelper.getStringFromBytes(exten);
                         try {
                             ByteHelper.writeBytesToFile(decompressedBitStream.toByteArray(), path);
                         } catch (IOException e) {
@@ -799,6 +810,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                 k++;
             }
             pds.dismiss();
+            Log.d(MY_TAG_2,"Messages were got ");
         }
     }
 
