@@ -80,9 +80,9 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
     byte b;
     byte space;
     String s;
-    int k = 0, port = 3129;
+    int k, port = 3129;
     byte codingType, compressionType;
-
+    ProgressDialog pds;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,6 +100,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         ab.setDisplayHomeAsUpEnabled(true);
         // ab.setBackgroundDrawable(getResources().getDrawable(R.drawable.bar));
         ab.setTitle(R.string.chatting);
+        k=0;
 
         client = new TCPClient(ip, port);
 
@@ -470,9 +471,8 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
     }
 
     class SendMsg extends AsyncTask<byte[], Void, Integer> {
-        byte msgType;
+        byte msgType;ProgressDialog pds;
         byte[] msgExtension;
-        ProgressDialog pds;
 
         SendMsg(byte msgType, byte[] msgExtension) {
             this.msgType = msgType;
@@ -512,6 +512,8 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                 }
                 outBitStream.addByteArray(exten);
             }
+
+            //compressing message
             switch (compressionType) {
                 case (byte) 0:
                     compressedBitStream = (new Huffman()).compressByteString(bytes[0]);
@@ -523,7 +525,8 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                     compressedBitStream = (new RLE()).compressByteString(bytes[0]);
                     break;
             }
-            //  pds.setMessage("Coding message...");
+
+            //coding message
             switch (codingType) {
                 case (byte) 0:
                     codedBitStream = (new HammingCode()).encodeBitStream(compressedBitStream);
@@ -539,19 +542,19 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                     codedBitStream = (new RepetitionCode()).encodeBitStream(compressedBitStream);
                     break;
             }
-            //  pds.setMessage("Compressing message...");
 
             outBitStream.addByteArray(codedBitStream.toByteArray());
-
             byte[] block = outBitStream.toByteArray();
-
+            //pds.setMessage("Sending on server...");
             // pds.setMessage("Sending message...");
+
             // Send bytes to server
             try {
                 response = client.sendMessage(block);
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
             return response;
         }
 
@@ -581,8 +584,8 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         }
     }
 
+
     class GetMsgs extends AsyncTask<Integer, Void, byte[][]> {
-        ProgressDialog pds;
 
         @Override
         protected void onPreExecute() {
@@ -611,7 +614,10 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         @Override
         protected void onPostExecute(byte[][] bytes) {
             super.onPostExecute(bytes);
-            if (bytes.length == 0) return;
+            if (bytes.length == 0) {
+                pds.dismiss();
+                return;
+            }
             BitStream decompressedBitStream = new BitStream();
             BitStream decodedBitStream = new BitStream();
 
@@ -624,12 +630,9 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                 System.arraycopy(bytes[i], delta, msg, 0, msg.length);
                 byte[] nickname = new byte[20];
                 System.arraycopy(bytes[i], 3, nickname, 0, 20);
-                info += msg.length;
 
-                pds.dismiss();
-                pds.setMessage("Decoding message...");
-                pds.show();
                 //decoding type
+                info += msg.length;
                 try {
                     switch (bytes[i][1]) {
                         case (byte) 0:
@@ -648,12 +651,9 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                info += decodedBitStream.size() + "   Source";
 
-                pds.dismiss();
-                pds.setMessage("Decompressing message...");
-                pds.show();
                 //decompression type
+                info += decodedBitStream.size()/8;
                 try {
                     switch (bytes[i][2]) {
                         case (byte) 0:
@@ -672,11 +672,10 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                 } catch (DecompressionException e) {
                     e.printStackTrace();
                 }
-                info += decompressedBitStream.size();
+                info += decompressedBitStream.size()/8 + "   Source";
 
                 //file type
                 switch (bytes[i][0]) {
-
                     //simple text msg
                     case (byte) 0:
                         msgTextLL = new LinearLayout(second.this);
