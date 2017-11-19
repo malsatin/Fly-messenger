@@ -50,10 +50,9 @@ import com.example.denis.p7.algorithms.compression.LZ77;
 import com.example.denis.p7.algorithms.compression.RLE;
 import com.example.denis.p7.algorithms.exceptions.DecompressionException;
 import com.example.denis.p7.algorithms.exceptions.FileTooBigException;
+import com.example.denis.p7.algorithms.helpers.BitStream;
 import com.example.denis.p7.algorithms.helpers.ByteHelper;
 import com.squareup.picasso.Picasso;
-
-import org.apache.commons.io.output.ByteArrayOutputStream;
 
 import java.io.File;
 import java.io.IOException;
@@ -499,52 +498,54 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         @Override
         protected Integer doInBackground(byte[]... bytes) {
             int response = 4;
-            ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-            ByteArrayOutputStream codedStream = new ByteArrayOutputStream();
-            ByteArrayOutputStream compressedStream = new ByteArrayOutputStream();
-            outStream.write(msgType);
-            outStream.write(codingType);
-            outStream.write(compressionType);
-            try {
-                outStream.write(nickname);
-                if (msgType != (byte) 0) {
-                    byte[] exten = new byte[20];
-                    for (int i = 0; i < 20; i++) {
-                        exten[i] = (msgExtension.length > i) ? msgExtension[i] : space;
-                    }
-                    outStream.write(exten);
+            BitStream compressedBitStream = new BitStream();
+            BitStream codedBitStream = new BitStream();
+            BitStream outBitStream = new BitStream();
+            outBitStream.addByte(msgType);
+            outBitStream.addByte(codingType);
+            outBitStream.addByte(compressionType);
+            outBitStream.addByteArray(nickname);
+            if (msgType != (byte) 0) {
+                byte[] exten = new byte[20];
+                for (int i = 0; i < 20; i++) {
+                    exten[i] = (msgExtension.length > i) ? msgExtension[i] : space;
                 }
-              //  pds.setMessage("Coding message...");
-                switch (codingType) {
-                    case (byte) 0:
-                        codedStream.write((new HammingCode()).encodeByteString(bytes[0]));
-                        break;
-                    case (byte) 1:
-                        codedStream.write((new ParityBit()).encodeByteString(bytes[0]));
-                        break;
-                    case (byte) 2:
-                        codedStream.write((new RepetitionCode()).encodeByteString(bytes[0]));
-                        break;
-                }
-              //  pds.setMessage("Compressing message...");
-                switch (compressionType) {
-                    case (byte) 0:
-                        compressedStream.write((new Huffman()).compressByteString(codedStream.toByteArray()));
-                        break;
-                    case (byte) 1:
-                        compressedStream.write((new LZ77()).compressByteString(codedStream.toByteArray()));
-                        break;
-                    case (byte) 2:
-                        compressedStream.write((new RLE()).compressByteString(codedStream.toByteArray()));
-                        break;
-                }
-                outStream.write(compressedStream.toByteArray());
-            } catch (IOException e) {
-                e.printStackTrace();
+                outBitStream.addByteArray(exten);
             }
-            byte[] block = outStream.toByteArray();
+            switch (compressionType) {
+                case (byte) 0:
+                    compressedBitStream = (new Huffman()).compressByteString(bytes[0]);
+                    break;
+                case (byte) 1:
+                    compressedBitStream = (new LZ77()).compressByteString(bytes[0]);
+                    break;
+                case (byte) 2:
+                    compressedBitStream = (new RLE()).compressByteString(bytes[0]);
+                    break;
+            }
+            //  pds.setMessage("Coding message...");
+            switch (codingType) {
+                case (byte) 0:
+                    codedBitStream = (new HammingCode()).encodeBitStream(compressedBitStream);
+                    break;
+                case (byte) 1:
+                    try {
+                        codedBitStream = (new ParityBit()).encodeBitStream(compressedBitStream);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                case (byte) 2:
+                    codedBitStream = (new RepetitionCode()).encodeBitStream(compressedBitStream);
+                    break;
+            }
+            //  pds.setMessage("Compressing message...");
 
-           // pds.setMessage("Sending message...");
+            outBitStream.addByteArray(codedBitStream.toByteArray());
+
+            byte[] block = outBitStream.toByteArray();
+
+            // pds.setMessage("Sending message...");
             // Send bytes to server
             try {
                 response = client.sendMessage(block);
@@ -582,6 +583,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
 
     class GetMsgs extends AsyncTask<Integer, Void, byte[][]> {
         ProgressDialog pds;
+
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -610,12 +612,11 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         protected void onPostExecute(byte[][] bytes) {
             super.onPostExecute(bytes);
             if (bytes.length == 0) return;
-            ByteArrayOutputStream decodedStream;
-            ByteArrayOutputStream decompressedStream;
+            BitStream decompressedBitStream = new BitStream();
+            BitStream decodedBitStream = new BitStream();
+
             for (int i = 0; i < bytes.length; i++) {
                 String info = "Size[bytes] - Algorithm:\n";
-                decodedStream = new ByteArrayOutputStream();
-                decompressedStream = new ByteArrayOutputStream();
                 int delta = (bytes[i][0] == 0) ? 23 : 43;
                 String path;
                 byte[] exten = new byte[20];
@@ -625,51 +626,49 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                 System.arraycopy(bytes[i], 3, nickname, 0, 20);
                 info += msg.length;
 
-                pds.setMessage("Decompressing message...");
-                //decompression type
-                try {
-                    switch (bytes[i][2]) {
-                        case (byte) 0:
-                            decompressedStream.write((new Huffman()).decompressByteString(msg));
-                            info += "   Huffman\n";
-                            break;
-                        case (byte) 1:
-                            decompressedStream.write((new LZ77()).decompressByteString(msg));
-                            info += "   LZ77\n";
-                            break;
-                        case (byte) 2:
-                            decompressedStream.write((new RLE()).decompressByteString(msg));
-                            info += "   RLE\n";
-                            break;
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (DecompressionException e) {
-                    e.printStackTrace();
-                }
-                info += decompressedStream.size();
-
                 pds.setMessage("Decoding message...");
                 //decoding type
                 try {
                     switch (bytes[i][1]) {
                         case (byte) 0:
-                            decodedStream.write((new HammingCode()).decodeByteString(decompressedStream.toByteArray()));
+                            decodedBitStream.addByteArray((new HammingCode()).decodeByteString(msg));
                             info += "   HammingCode\n";
                             break;
                         case (byte) 1:
-                            decodedStream.write((new ParityBit()).decodeByteString(decompressedStream.toByteArray()));
+                            decodedBitStream.addByteArray((new ParityBit()).decodeByteString(msg));
                             info += "   ParityBit\n";
                             break;
                         case (byte) 2:
-                            decodedStream.write((new RepetitionCode()).decodeByteString(decompressedStream.toByteArray()));
+                            decodedBitStream.addByteArray((new RepetitionCode()).decodeByteString(msg));
                             info += "   RepetitionCode\n";
                             break;
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                info += decodedStream.size() + "   Source";
+                info += decodedBitStream.size() + "   Source";
+
+                pds.setMessage("Decompressing message...");
+                //decompression type
+                try {
+                    switch (bytes[i][2]) {
+                        case (byte) 0:
+                            decompressedBitStream = (new Huffman()).decompressBitStream(decodedBitStream);
+                            info += "   Huffman\n";
+                            break;
+                        case (byte) 1:
+                            decompressedBitStream = (new LZ77()).decompressBitStream(decodedBitStream);
+                            info += "   LZ77\n";
+                            break;
+                        case (byte) 2:
+                            decompressedBitStream = (new RLE()).decompressBitStream(decodedBitStream);
+                            info += "   RLE\n";
+                            break;
+                    }
+                } catch (DecompressionException e) {
+                    e.printStackTrace();
+                }
+                info += decompressedBitStream.size();
 
                 //file type
                 switch (bytes[i][0]) {
@@ -699,7 +698,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                             infoTV.setLayoutParams(msgOutLParamsTV);
                         }
 
-                        s = ByteHelper.getStringFromBytes(decodedStream.toByteArray());     //TODO replace on decodedStream.toByteArray()
+                        s = ByteHelper.getStringFromBytes(decompressedBitStream.toByteArray());     //TODO replace on decodedStream.toByteArray()
                         msgTV.setText(s);
                         infoTV.setText(info);
 
@@ -731,7 +730,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                         System.arraycopy(bytes[i], 23, exten, 0, 20);
                         path = getApplicationInfo().dataDir + "/f" + k + "." + ByteHelper.getStringFromBytes(exten);
                         try {
-                            ByteHelper.writeBytesToFile(decodedStream.toByteArray(), path);     //TODO replace on decodedStream.toByteArray()
+                            ByteHelper.writeBytesToFile(decompressedBitStream.toByteArray(), path);     //TODO replace on decodedStream.toByteArray()
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -775,7 +774,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                         System.arraycopy(bytes[i], 23, exten, 0, 20);
                         path = getApplicationInfo().dataDir + "/f" + k + "." + ByteHelper.getStringFromBytes(exten);
                         try {
-                            ByteHelper.writeBytesToFile(decodedStream.toByteArray(), path);     //TODO replace on decodedStream.toByteArray()
+                            ByteHelper.writeBytesToFile(decompressedBitStream.toByteArray(), path);     //TODO replace on decodedStream.toByteArray()
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
