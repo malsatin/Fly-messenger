@@ -626,7 +626,9 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                 System.arraycopy(bytes[i], 3, nickname, 0, 20);
                 info += msg.length;
 
+                pds.dismiss();
                 pds.setMessage("Decoding message...");
+                pds.show();
                 //decoding type
                 try {
                     switch (bytes[i][1]) {
@@ -648,7 +650,9 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                 }
                 info += decodedBitStream.size() + "   Source";
 
+                pds.dismiss();
                 pds.setMessage("Decompressing message...");
+                pds.show();
                 //decompression type
                 try {
                     switch (bytes[i][2]) {
@@ -698,7 +702,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                             infoTV.setLayoutParams(msgOutLParamsTV);
                         }
 
-                        s = ByteHelper.getStringFromBytes(decompressedBitStream.toByteArray());     //TODO replace on decodedStream.toByteArray()
+                        s = ByteHelper.getStringFromBytes(decompressedBitStream.toByteArray());
                         msgTV.setText(s);
                         infoTV.setText(info);
 
@@ -728,9 +732,9 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                         infoTV.setLayoutParams(msgSenderLParamsTV);
 
                         System.arraycopy(bytes[i], 23, exten, 0, 20);
-                        path = getApplicationInfo().dataDir + "/f" + k + "." + ByteHelper.getStringFromBytes(exten);
+                        path = getFilesDir().getPath() + "/f" + k + "." + ByteHelper.getStringFromBytes(exten);
                         try {
-                            ByteHelper.writeBytesToFile(decompressedBitStream.toByteArray(), path);     //TODO replace on decodedStream.toByteArray()
+                            ByteHelper.writeBytesToFile(decompressedBitStream.toByteArray(), path);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
