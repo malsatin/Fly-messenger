@@ -28,6 +28,7 @@ public class Huffman implements ICompressor {
         BitStream encoded = encodeMessage(codes, message);
         BitStream stream = serializeMessage(frequencyMap, encoded);
 
+        stream.fillGap();
         stream.reset();
         return stream;
     }

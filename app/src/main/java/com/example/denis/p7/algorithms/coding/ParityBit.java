@@ -25,6 +25,7 @@ public class ParityBit implements ICoder {
             }
             out.addBit((control & 1L) == 1);
         }
+        out.reset();
         return out;
     }
 
@@ -44,6 +45,7 @@ public class ParityBit implements ICoder {
             }
             out.addNumber(cur >>> 1, BITS_OF_DATA);
         }
+        out.reset();
         return out;
     }
 }

@@ -19,6 +19,7 @@ public class RepetitionCode implements ICoder {
             }
         }
 
+        answer.reset();
         return answer;
     }
 
@@ -36,6 +37,7 @@ public class RepetitionCode implements ICoder {
             answer.addBit((bits[0] && bits[1]) || (bits[1] && bits[2]) || (bits[0] && bits[2]));
         }
 
+        answer.reset();
         return answer;
     }
 }
