@@ -40,7 +40,7 @@ public class CompressionTest {
 
             BitStream t = new HammingCode().encodeBitStream(comp);
             byte[] t2 = t.toByteArray();
-            BitStream t3 = new BitStream(new HammingCode().decodeByteString(t2));
+            BitStream t3 = new HammingCode().decodeByteString(t2);
 
             byte[] res = algo.decompressBitStream(t3).toByteArray();
             str2 = ByteHelper.getStringFromBytes(res);
