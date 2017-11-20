@@ -5,7 +5,8 @@ import com.example.denis.p7.algorithms.helpers.BitStream;
 import com.example.denis.p7.algorithms.interfaces.ICoder;
 
 /**
- * Fly-messenger
+ * Does nothing
+ *
  * Created by Sergey on 2017-11-20
  */
 public class FakeCoding implements ICoder {
