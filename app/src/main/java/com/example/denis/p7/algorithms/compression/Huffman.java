@@ -80,9 +80,7 @@ public class Huffman implements ICompressor {
     }
 
     private Node buildTree(Map<Byte, Integer> map) {
-        Queue<Node> queue = new PriorityQueue<>(map.size(), (n1, n2) -> {
-            return Integer.compare(n1.getWeight(), n2.getWeight());
-        });
+        Queue<Node> queue = new PriorityQueue<>(map.size(), new MyComparator());
         for(Map.Entry<Byte, Integer> entry : map.entrySet()) {
             queue.add(new Node(entry.getKey(), entry.getValue()));
         }
