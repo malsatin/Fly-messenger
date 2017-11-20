@@ -42,6 +42,7 @@ public class RLE implements ICompressor {
             outStream.addNumber(curCount, lengthBitSize);
         }
 
+        outStream.fillGap();
         outStream.reset();
         return outStream;
     }
@@ -57,7 +58,7 @@ public class RLE implements ICompressor {
 
         while(inStream.hasBits()) {
             if(inStream.bitsRemain() < BitStream.BYTE_SIZE + lengthBitSize) {
-                if(inStream.bitsRemain() < BitStream.BYTE_SIZE) {
+                if(inStream.bitsRemain() <= BitStream.BYTE_SIZE) {
                     break;
                 }
 

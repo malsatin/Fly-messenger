@@ -274,6 +274,19 @@ public class BitStream {
     }
 
     /**
+     * Fills the gap to make number of bit a multiple of byte size
+     *
+     * For example for 29 bits it will add 3 zeros to make 32 bits
+     */
+    public void fillGap() {
+        int bitsToAdd = BYTE_SIZE - (size % BYTE_SIZE);
+
+        for(int i = 0; i < bitsToAdd; i++) {
+            addBit(false);
+        }
+    }
+
+    /**
      * @return Size of the hole stream
      */
     public int size() {

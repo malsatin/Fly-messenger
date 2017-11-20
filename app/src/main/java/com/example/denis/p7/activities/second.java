@@ -48,12 +48,14 @@ import com.example.denis.p7.algorithms.coding.RepetitionCode;
 import com.example.denis.p7.algorithms.compression.Huffman;
 import com.example.denis.p7.algorithms.compression.LZ77;
 import com.example.denis.p7.algorithms.compression.RLE;
+import com.example.denis.p7.algorithms.exceptions.DecodingException;
 import com.example.denis.p7.algorithms.exceptions.DecompressionException;
 import com.example.denis.p7.algorithms.exceptions.FileTooBigException;
+import com.example.denis.p7.algorithms.helpers.BitStream;
 import com.example.denis.p7.algorithms.helpers.ByteHelper;
+import com.example.denis.p7.algorithms.interfaces.ICoder;
+import com.example.denis.p7.algorithms.interfaces.ICompressor;
 import com.squareup.picasso.Picasso;
-
-import org.apache.commons.io.output.ByteArrayOutputStream;
 
 import java.io.File;
 import java.io.IOException;
@@ -71,6 +73,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
     ImageView msgIV, msgFileIV;
     InputMethodManager imm;
     Intent intent;
+    String MY_TAG_2="MY_TAG_2";
     SendMsg sendMsg;
     GetMsgs getMsgs;
     final int REQUEST_CODE_IMAGE = 1, REQUEST_CODE_AUDIO = 2, REQUEST_CODE_TEXT_FILE = 3;
@@ -81,9 +84,9 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
     byte b;
     byte space;
     String s;
-    int k = 0, port = 3129;
+    int k, port = 3129;
     byte codingType, compressionType;
-
+    ProgressDialog pds;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,6 +104,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         ab.setDisplayHomeAsUpEnabled(true);
         // ab.setBackgroundDrawable(getResources().getDrawable(R.drawable.bar));
         ab.setTitle(R.string.chatting);
+        k = 0;
 
         client = new TCPClient(ip, port);
 
@@ -152,7 +156,6 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         fabAttach = (FloatingActionButton) findViewById(R.id.fabAttach);
         fabSend = (FloatingActionButton) findViewById(R.id.fabSend);
         fabSend.setOnClickListener(this);
-        getMsgs = new GetMsgs();
     }
 
 
@@ -176,7 +179,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                 startActivity(intent);
                 return true;
             case R.id.update:
-                if (getMsgs.getStatus() != AsyncTask.Status.RUNNING) {
+                if (getMsgs == null || getMsgs.getStatus() != AsyncTask.Status.RUNNING) {
                     getMsgs = new GetMsgs();
                     getMsgs.execute(k);
                 }
@@ -229,6 +232,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         popup.setOnMenuItemClickListener(this);
         MenuInflater inflater = popup.getMenuInflater();
         inflater.inflate(R.menu.menu_attach, popup.getMenu());
+        verifyStoragePermissions(second.this);
         popup.show();
     }
 
@@ -276,7 +280,6 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) {
-            verifyStoragePermissions(second.this);
             Uri uri = data.getData();
             s = getFilePath(uri);
             byte type = (byte) 5;
@@ -472,8 +475,8 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
 
     class SendMsg extends AsyncTask<byte[], Void, Integer> {
         byte msgType;
-        byte[] msgExtension;
         ProgressDialog pds;
+        byte[] msgExtension;
 
         SendMsg(byte msgType, byte[] msgExtension) {
             this.msgType = msgType;
@@ -495,62 +498,51 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
             pds.show();
         }
 
-        @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+
         @Override
         protected Integer doInBackground(byte[]... bytes) {
             int response = 4;
-            ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-            ByteArrayOutputStream codedStream = new ByteArrayOutputStream();
-            ByteArrayOutputStream compressedStream = new ByteArrayOutputStream();
-            outStream.write(msgType);
-            outStream.write(codingType);
-            outStream.write(compressionType);
-            try {
-                outStream.write(nickname);
-                if (msgType != (byte) 0) {
-                    byte[] exten = new byte[20];
-                    for (int i = 0; i < 20; i++) {
-                        exten[i] = (msgExtension.length > i) ? msgExtension[i] : space;
-                    }
-                    outStream.write(exten);
-                }
-              //  pds.setMessage("Coding message...");
-                switch (codingType) {
-                    case (byte) 0:
-                        codedStream.write((new HammingCode()).encodeByteString(bytes[0]));
-                        break;
-                    case (byte) 1:
-                        codedStream.write((new ParityBit()).encodeByteString(bytes[0]));
-                        break;
-                    case (byte) 2:
-                        codedStream.write((new RepetitionCode()).encodeByteString(bytes[0]));
-                        break;
-                }
-              //  pds.setMessage("Compressing message...");
-                switch (compressionType) {
-                    case (byte) 0:
-                        compressedStream.write((new Huffman()).compressByteString(codedStream.toByteArray()));
-                        break;
-                    case (byte) 1:
-                        compressedStream.write((new LZ77()).compressByteString(codedStream.toByteArray()));
-                        break;
-                    case (byte) 2:
-                        compressedStream.write((new RLE()).compressByteString(codedStream.toByteArray()));
-                        break;
-                }
-                outStream.write(compressedStream.toByteArray());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            byte[] block = outStream.toByteArray();
 
-           // pds.setMessage("Sending message...");
+            BitStream outBitStream = new BitStream();
+            outBitStream.addByte(msgType);
+            outBitStream.addByte(codingType);
+            outBitStream.addByte(compressionType);
+            outBitStream.addByteArray(nickname);
+            if (msgType != 0) {
+                byte[] exten = new byte[20];
+                for (int i = 0; i < 20; i++) {
+                    exten[i] = (msgExtension.length > i) ? msgExtension[i] : space;
+                }
+                outBitStream.addByteArray(exten);
+            }
+
+            ICompressor compressor = new AlgorithmsHelper().getCompressor(compressionType);
+            ICoder coder = new AlgorithmsHelper().getCoder(codingType);
+
+            BitStream compressedBitStream;
+            BitStream codedBitStream;
+
+            //compressing message
+            Log.d(MY_TAG_2,"Compressing message");
+            compressedBitStream = compressor.compressByteString(bytes[0]);
+
+            //coding message
+            Log.d(MY_TAG_2,"Coding message");
+            codedBitStream = coder.encodeBitStream(compressedBitStream);
+
+            outBitStream.addByteArray(codedBitStream.toByteArray());
+            byte[] block = outBitStream.toByteArray();
+            //pds.setMessage("Sending on server...");
+            // pds.setMessage("Sending message...");
+
             // Send bytes to server
+            Log.d(MY_TAG_2,"Send bytes to server");
             try {
                 response = client.sendMessage(block);
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
             return response;
         }
 
@@ -577,11 +569,13 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                     break;
             }
             pds.dismiss();
+            Log.d(MY_TAG_2,"Message was send ");
         }
     }
 
+
     class GetMsgs extends AsyncTask<Integer, Void, byte[][]> {
-        ProgressDialog pds;
+
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -597,6 +591,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         protected byte[][] doInBackground(Integer... alreadyHaveMessages) {
             byte[][] result = new byte[0][];
             // Get messages
+            Log.d(MY_TAG_2,"Getting bytes to server");
             try {
                 result = client.getMessages(alreadyHaveMessages[0]);
             } catch (IOException e) {
@@ -609,71 +604,54 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         @Override
         protected void onPostExecute(byte[][] bytes) {
             super.onPostExecute(bytes);
-            if (bytes.length == 0) return;
-            ByteArrayOutputStream decodedStream;
-            ByteArrayOutputStream decompressedStream;
-            for (int i = 0; i < bytes.length; i++) {
-                String info = "Size[bytes] - Algorithm:\n";
-                decodedStream = new ByteArrayOutputStream();
-                decompressedStream = new ByteArrayOutputStream();
-                int delta = (bytes[i][0] == 0) ? 23 : 43;
-                String path;
-                byte[] exten = new byte[20];
-                byte[] msg = new byte[bytes[i].length - delta];
-                System.arraycopy(bytes[i], delta, msg, 0, msg.length);
-                byte[] nickname = new byte[20];
-                System.arraycopy(bytes[i], 3, nickname, 0, 20);
-                info += msg.length;
+            if (bytes.length == 0) {
+                pds.dismiss();
+                return;
+            }
 
-                pds.setMessage("Decompressing message...");
-                //decompression type
+            for (int i = 0; i < bytes.length; i++) {
+                byte[] broadcast = bytes[i];
+                String info = "Size[bytes] - Algorithm:\n";
+                int metaLength = (broadcast[0] == 0) ? 23 : 43;
+
+                byte[] msg = new byte[broadcast.length - metaLength];
+                System.arraycopy(bytes[i], metaLength, msg, 0, msg.length);
+
+                byte[] nickname = new byte[20];
+                System.arraycopy(bytes[i], 3, nickname, 0, nickname.length);
+
+                ICoder coder = new AlgorithmsHelper().getCoder(broadcast[1]);
+                ICompressor compressor = new AlgorithmsHelper().getCompressor(broadcast[2]);
+
+                BitStream decodedBitStream = new BitStream();
+                BitStream decompressedBitStream = new BitStream();
+
+                //decoding messages
+                Log.d(MY_TAG_2,"Decoding messages");
+                info += msg.length;
                 try {
-                    switch (bytes[i][2]) {
-                        case (byte) 0:
-                            decompressedStream.write((new Huffman()).decompressByteString(msg));
-                            info += "   Huffman\n";
-                            break;
-                        case (byte) 1:
-                            decompressedStream.write((new LZ77()).decompressByteString(msg));
-                            info += "   LZ77\n";
-                            break;
-                        case (byte) 2:
-                            decompressedStream.write((new RLE()).decompressByteString(msg));
-                            info += "   RLE\n";
-                            break;
-                    }
-                } catch (IOException e) {
+                    decodedBitStream = coder.decodeByteString(msg);
+                    info += "   " + coder.getClass().getSimpleName() + "\n";
+                } catch (DecodingException e) {
                     e.printStackTrace();
+                }
+                info += decodedBitStream.size() / 8;
+
+                //decompression messages
+                Log.d(MY_TAG_2,"Decompression messages");
+                try {
+                    decompressedBitStream = compressor.decompressBitStream(decodedBitStream);
+                    info += "   " + compressor.getClass().getSimpleName() + "\n";
                 } catch (DecompressionException e) {
                     e.printStackTrace();
                 }
-                info += decompressedStream.size();
+                info += decompressedBitStream.size() / 8 + "   Source";
 
-                pds.setMessage("Decoding message...");
-                //decoding type
-                try {
-                    switch (bytes[i][1]) {
-                        case (byte) 0:
-                            decodedStream.write((new HammingCode()).decodeByteString(decompressedStream.toByteArray()));
-                            info += "   HammingCode\n";
-                            break;
-                        case (byte) 1:
-                            decodedStream.write((new ParityBit()).decodeByteString(decompressedStream.toByteArray()));
-                            info += "   ParityBit\n";
-                            break;
-                        case (byte) 2:
-                            decodedStream.write((new RepetitionCode()).decodeByteString(decompressedStream.toByteArray()));
-                            info += "   RepetitionCode\n";
-                            break;
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                info += decodedStream.size() + "   Source";
-
-                //file type
+                String path;
+                byte[] exten = new byte[20];
+                //Mapping file on screen
+                Log.d(MY_TAG_2,"Mapping file on screen ");
                 switch (bytes[i][0]) {
-
                     //simple text msg
                     case (byte) 0:
                         msgTextLL = new LinearLayout(second.this);
@@ -699,7 +677,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                             infoTV.setLayoutParams(msgOutLParamsTV);
                         }
 
-                        s = ByteHelper.getStringFromBytes(decodedStream.toByteArray());     //TODO replace on decodedStream.toByteArray()
+                        s = ByteHelper.getStringFromBytes(decompressedBitStream.toByteArray());
                         msgTV.setText(s);
                         infoTV.setText(info);
 
@@ -729,9 +707,10 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                         infoTV.setLayoutParams(msgSenderLParamsTV);
 
                         System.arraycopy(bytes[i], 23, exten, 0, 20);
-                        path = getApplicationInfo().dataDir + "/f" + k + "." + ByteHelper.getStringFromBytes(exten);
+                        path =  getApplicationInfo().dataDir
+                                + "/f" + k + "." + ByteHelper.getStringFromBytes(exten);
                         try {
-                            ByteHelper.writeBytesToFile(decodedStream.toByteArray(), path);     //TODO replace on decodedStream.toByteArray()
+                            ByteHelper.writeBytesToFile(decompressedBitStream.toByteArray(), path);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -775,7 +754,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                         System.arraycopy(bytes[i], 23, exten, 0, 20);
                         path = getApplicationInfo().dataDir + "/f" + k + "." + ByteHelper.getStringFromBytes(exten);
                         try {
-                            ByteHelper.writeBytesToFile(decodedStream.toByteArray(), path);     //TODO replace on decodedStream.toByteArray()
+                            ByteHelper.writeBytesToFile(decompressedBitStream.toByteArray(), path);     //TODO replace on decodedStream.toByteArray()
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -796,8 +775,11 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                 }
                 k++;
             }
+
             pds.dismiss();
+            Log.d(MY_TAG_2,"Messages were got ");
         }
+
     }
 
     class ClearHistory extends AsyncTask<Void, Void, Integer> {
@@ -821,6 +803,34 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                 case 2:
                     Toast.makeText(second.this, "Connection with server failed", Toast.LENGTH_SHORT).show();
                     break;
+            }
+        }
+    }
+
+    class AlgorithmsHelper {
+        public ICompressor getCompressor(int type) {
+            switch (type) {
+                case 0:
+                    return new Huffman();
+                case 1:
+                    return new LZ77();
+                case 2:
+                    return new RLE();
+                default:
+                    throw new IllegalArgumentException("Illegal compression type");
+            }
+        }
+
+        public ICoder getCoder(int type) {
+            switch (type) {
+                case 0:
+                    return new HammingCode();
+                case 1:
+                    return new ParityBit();
+                case 2:
+                    return new RepetitionCode();
+                default:
+                    throw new IllegalArgumentException("Illegal coding type");
             }
         }
     }

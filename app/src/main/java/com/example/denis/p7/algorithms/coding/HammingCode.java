@@ -31,6 +31,8 @@ public class HammingCode implements ICoder {
             /* End of constant block of code */
         }
         out.addByteArray(parityBits.toByteArray());
+
+        out.reset();
         return out;
     }
 
@@ -61,6 +63,7 @@ public class HammingCode implements ICoder {
                 }
             }
         }
+
         out.reset();
         return out;
     }

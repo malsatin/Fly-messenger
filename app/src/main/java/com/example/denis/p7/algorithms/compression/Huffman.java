@@ -28,6 +28,7 @@ public class Huffman implements ICompressor {
         BitStream encoded = encodeMessage(codes, message);
         BitStream stream = serializeMessage(frequencyMap, encoded);
 
+        stream.fillGap();
         stream.reset();
         return stream;
     }
@@ -79,7 +80,7 @@ public class Huffman implements ICompressor {
     }
 
     private Node buildTree(Map<Byte, Integer> map) {
-        Queue<Node> queue = new PriorityQueue<>(map.size(), Comparator.comparingInt(Node::getWeight));
+        Queue<Node> queue = new PriorityQueue<>(map.size(), new MyComparator());
         for(Map.Entry<Byte, Integer> entry : map.entrySet()) {
             queue.add(new Node(entry.getKey(), entry.getValue()));
         }
