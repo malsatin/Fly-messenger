@@ -22,13 +22,13 @@ import java.util.Arrays;
 public class CompressionTest {
 
     public static void main(String[] args) throws DecompressionException, DecodingException, IOException, FileTooBigException {
-        //String testStr = "флаlkjsjsdfjkljkl ололрвыолдар олдфыв аолдрываф олдрфываолд ролдфыв аролдрыва фолдрфыв аолдрв олдрыф влоадролдывфар лжки";
-        String path = "C://photo.jpg";
+        String testStr = "флаlkjsjsdfjkljkl ололрвыолдар олдфыв аолдрываф олдрфываолд ролдфыв аролдрыва фолдрфыв аолдрв олдрыф влоадролдывфар лжки";
+        //String path = "C://photo.jpg";
 
         ICompressor[] algorithms = {new Huffman(), new RLE(), new LZ77()};
 
-        //byte[] in = ByteHelper.getBytesFromString(testStr);
-        byte[] in = ByteHelper.readBytesFromFile(path);
+        byte[] in = ByteHelper.getBytesFromString(testStr);
+        //byte[] in = ByteHelper.readBytesFromFile(path);
 
         int i = 0;
         for(ICompressor algo : algorithms) {
@@ -61,7 +61,7 @@ public class CompressionTest {
 
             System.out.println("Before compression: " + Arrays.toString(in));
             System.out.println("After compression:  " + str2);
-            System.out.println(in.equals(str2) ? "+ Test passed" : "- Test failed!");
+            System.out.println(testStr.equals(str2) ? "+ Test passed" : "- Test failed!");
             System.out.println("Initial size: " + in.length);
             System.out.println("Compressed size: " + comp.toByteArray().length);
             System.out.println("Decompressed size: " + res.length);
