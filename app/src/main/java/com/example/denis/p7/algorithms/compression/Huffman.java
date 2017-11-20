@@ -67,7 +67,7 @@ public class Huffman implements ICompressor {
     }
 
     private Map<Byte, Integer> countFrequency(BitStream message) {
-        Map<Byte, Integer> map = new HashMap<>();
+        Map<Byte, Integer> map = new TreeMap<>();
 
         while(message.hasBits()) {
             byte oneByte = message.readByte();
@@ -152,7 +152,7 @@ public class Huffman implements ICompressor {
     }
 
     private Map<Byte, Integer> deserializeMap(BitStream stream) {
-        Map<Byte, Integer> map = new HashMap<>();
+        Map<Byte, Integer> map = new TreeMap<>();
 
         int entriesCount = stream.readInt();
         int frequencySize = stream.readInt();
