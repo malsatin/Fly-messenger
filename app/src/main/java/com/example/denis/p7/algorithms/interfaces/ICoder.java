@@ -15,8 +15,8 @@ public interface ICoder {
      * @param message Array of bytes to encode using current coding algorithm
      * @return Encoded sequence (array of bytes)
      */
-    default byte[] encodeByteString(byte[] message) {
-        return encodeBitStream(new BitStream(message)).toByteArray();
+    default BitStream encodeByteString(byte[] message) {
+        return encodeBitStream(new BitStream(message));
     }
 
     /**
@@ -26,8 +26,8 @@ public interface ICoder {
      * @return Decoded message (array of bytes)
      * @throws DecodingException There is non-fixable mistake in a sequence of bytes
      */
-    default byte[] decodeByteString(byte[] sequence) throws DecodingException {
-        return decodeBitStream(new BitStream(sequence)).toByteArray();
+    default BitStream decodeByteString(byte[] sequence) throws DecodingException {
+        return decodeBitStream(new BitStream(sequence));
     }
 
     /**

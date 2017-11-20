@@ -5,6 +5,7 @@ import com.example.denis.p7.algorithms.coding.ParityBit;
 import com.example.denis.p7.algorithms.coding.RepetitionCode;
 import com.example.denis.p7.algorithms.exceptions.DecodingException;
 import com.example.denis.p7.algorithms.exceptions.FileTooBigException;
+import com.example.denis.p7.algorithms.helpers.BitStream;
 import com.example.denis.p7.algorithms.helpers.ByteHelper;
 import com.example.denis.p7.algorithms.helpers.NoiseHelper;
 import com.example.denis.p7.algorithms.interfaces.ICoder;
@@ -22,12 +23,13 @@ public class CodingTest {
         byte[] file = sc.nextLine().getBytes();
         ICoder[] algorithms = {new HammingCode(), new ParityBit(), new RepetitionCode()};
         for (ICoder alg : algorithms) {
-            byte[] code = alg.encodeByteString(file);
+            BitStream code = alg.encodeByteString(file);
             NoiseHelper.applyNoise(code, BIT_FLIP_PROB);
             try {
-//                ByteHelper.writeBytesToFile(alg.decodeByteString(code),
+//                ByteHelper.writeBytesToFile(alg.decodeBitStream(code).toByteArray(),
 //                        alg.getClass().getSimpleName() + "_" + IN_FILE_NAME);
-                System.out.println(alg.getClass().getSimpleName() + " `" + ByteHelper.getStringFromBytes(alg.decodeByteString(code)) + "`\n");
+                System.out.println(alg.getClass().getSimpleName() + " `" +
+                        ByteHelper.getStringFromBytes(alg.decodeBitStream(code).toByteArray()) + "`\n");
             } catch (DecodingException e) {
                 e.printStackTrace();
             }
