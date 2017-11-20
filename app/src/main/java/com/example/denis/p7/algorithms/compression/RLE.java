@@ -58,7 +58,7 @@ public class RLE implements ICompressor {
 
         while(inStream.hasBits()) {
             if(inStream.bitsRemain() < BitStream.BYTE_SIZE + lengthBitSize) {
-                if(inStream.bitsRemain() < BitStream.BYTE_SIZE) {
+                if(inStream.bitsRemain() <= BitStream.BYTE_SIZE) {
                     break;
                 }
 
