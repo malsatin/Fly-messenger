@@ -22,7 +22,7 @@ import java.util.Arrays;
 public class CompressionTest {
 
     public static void main(String[] args) throws DecompressionException, DecodingException, IOException, FileTooBigException {
-        String testStr = "флаlkjsjsdfjkljkl ололрвыолдар олдфыв аолдрываф олдрфываолд ролдфыв аролдрыва фолдрфыв аолдрв олдрыф влоадролдывфар лжки";
+        String testStr = "hi";
         //String path = "C://photo.jpg";
 
         ICompressor[] algorithms = {new Huffman(), new RLE(), new LZ77()};
