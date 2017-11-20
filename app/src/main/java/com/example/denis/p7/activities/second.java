@@ -229,6 +229,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         popup.setOnMenuItemClickListener(this);
         MenuInflater inflater = popup.getMenuInflater();
         inflater.inflate(R.menu.menu_attach, popup.getMenu());
+        verifyStoragePermissions(second.this);
         popup.show();
     }
 
@@ -276,7 +277,6 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) {
-            verifyStoragePermissions(second.this);
             Uri uri = data.getData();
             s = getFilePath(uri);
             byte type = (byte) 5;
@@ -495,7 +495,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
             pds.show();
         }
 
-        @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+
         @Override
         protected Integer doInBackground(byte[]... bytes) {
             int response = 4;
