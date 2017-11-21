@@ -20,7 +20,7 @@ public class NoiseHelper {
         }
         byte[] toChange = sequence.toByteArray();
         int i, j;
-        for (i = 0; i < sequence.size(); ++i) {
+        for (i = 0; i < toChange.length; ++i) {
             for (j = 0; j < 8; ++j) {
                 if (ThreadLocalRandom.current().nextDouble(0, 1) < flipProb) {
                     toChange[i] ^= 1 << j;

@@ -25,9 +25,9 @@ public class HammingCode implements ICoder {
                 out.addBit(data[j] == 1);
             }
             /* Attention! Constant block of code. To be refactored if any of constants above constant will change! */
-            parityBits.addBit((data[0] ^ data[1] ^ data[3]) == 1);
-            parityBits.addBit((data[0] ^ data[2] ^ data[3]) == 1);
+            parityBits.addBit((data[0] ^ data[1] ^ data[2]) == 1);
             parityBits.addBit((data[1] ^ data[2] ^ data[3]) == 1);
+            parityBits.addBit((data[0] ^ data[1] ^ data[3]) == 1);
             /* End of constant block of code */
         }
         out.addByteArray(parityBits.toByteArray());
@@ -46,22 +46,38 @@ public class HammingCode implements ICoder {
             out.addByte(sequence.readByte());
         }
         long[] data = new long[BITS_OF_DATA];
-        long[] parityRes = new long[PARITY_BITS];
+        byte syndrome;
         int j;
         for (i = 0; i < out.size(); i += BITS_OF_DATA) {
             for (j = 0; j < BITS_OF_DATA; ++j) {
                 data[j] = out.readBit() ? 1L : 0L;
             }
             /* Attention! Constant block of code. To be refactored if any of constants above constant will change! */
-            parityRes[0] = sequence.readNumber(1) ^ data[0] ^ data[1] ^ data[3];
-            parityRes[1] = sequence.readNumber(1) ^ data[0] ^ data[2] ^ data[3];
-            parityRes[1] = sequence.readNumber(1) ^ data[1] ^ data[2] ^ data[3];
-            /* End of constant block of code */
-            for (j = 0; j < PARITY_BITS; ++j) {
-                if (parityRes[j] != 0L) {
+            syndrome = (byte) (4 * (sequence.readNumber(1) ^ data[0] ^ data[1] ^ data[2]));
+            syndrome += (byte) (2 * (sequence.readNumber(1) ^ data[1] ^ data[2] ^ data[3]));
+            syndrome += (byte) (sequence.readNumber(1) ^ data[0] ^ data[1] ^ data[3]);
+            switch (syndrome) {
+                case 0:
+                case 1:
+                case 2:
+                case 4:
+                    break;
+                case 3:
+                    data[3] = data[3] == 1 ? 0 : 1;
+                    break;
+                case 5:
+                    data[0] = data[0] == 1 ? 0 : 1;
+                    break;
+                case 6:
+                    data[2] = data[2] == 1 ? 0 : 1;
+                    break;
+                case 7:
+                    data[1] = data[1] == 1 ? 0 : 1;
+                    break;
+                default:
                     throw new DecodingException("Error detected while decoding! Please, ask for the data again.");
-                }
             }
+            /* End of constant block of code */
         }
 
         out.reset();

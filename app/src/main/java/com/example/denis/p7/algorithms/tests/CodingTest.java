@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.util.Scanner;
 
 public class CodingTest {
-    private static final double BIT_FLIP_PROB = 0.005;
+    private static final double BIT_FLIP_PROB = 0.01;
     private static final String IN_FILE_NAME = "input.txt";
 
     public static void main(String[] args) throws IOException, FileTooBigException {
