@@ -10,12 +10,7 @@ public class Huffman implements ICompressor {
 
     @Override
     public BitStream compressBitStream(BitStream inStream) {
-        return compressByteString(inStream.toByteArray());
-    }
-
-    @Override
-    public BitStream compressByteString(byte[] message) {
-        Map<Byte, Integer> frequencyMap = countFrequency(message);
+        Map<Byte, Integer> frequencyMap = countFrequency(inStream);
         Node root = buildTree(frequencyMap);
 
         Map<Byte, String> codes = new HashMap<>();
@@ -25,12 +20,17 @@ public class Huffman implements ICompressor {
             generateCode(root, codes, "");
         }
 
-        BitStream encoded = encodeMessage(codes, message);
+        BitStream encoded = encodeMessage(codes, inStream);
         BitStream stream = serializeMessage(frequencyMap, encoded);
 
         stream.fillGap();
         stream.reset();
         return stream;
+    }
+
+    @Override
+    public BitStream compressByteString(byte[] message) {
+        return compressBitStream(new BitStream(message));
     }
 
     @Override
@@ -66,9 +66,12 @@ public class Huffman implements ICompressor {
         return decompressBitStream(new BitStream(inputStream));
     }
 
-    private Map<Byte, Integer> countFrequency(byte[] message) {
-        Map<Byte, Integer> map = new HashMap<>();
-        for(byte oneByte : message) {
+    private Map<Byte, Integer> countFrequency(BitStream message) {
+        Map<Byte, Integer> map = new TreeMap<>();
+
+        while(message.hasBits()) {
+            byte oneByte = message.readByte();
+
             if(map.containsKey(oneByte)) {
                 map.put(oneByte, map.get(oneByte) + 1);
             } else {
@@ -76,6 +79,7 @@ public class Huffman implements ICompressor {
             }
         }
 
+        message.reset();
         return map;
     }
 
@@ -105,10 +109,11 @@ public class Huffman implements ICompressor {
         }
     }
 
-    private BitStream encodeMessage(Map<Byte, String> codesMap, byte[] message) {
+    private BitStream encodeMessage(Map<Byte, String> codesMap, BitStream message) {
         BitStream encoded = new BitStream();
 
-        for(byte oneByte : message) {
+        while(message.hasBits()) {
+            byte oneByte = message.readByte();
             String code = codesMap.get(oneByte);
 
             for(int i = 0; i < code.length(); i++) {
@@ -116,6 +121,7 @@ public class Huffman implements ICompressor {
             }
         }
 
+        message.reset();
         return encoded;
     }
 
@@ -146,7 +152,7 @@ public class Huffman implements ICompressor {
     }
 
     private Map<Byte, Integer> deserializeMap(BitStream stream) {
-        Map<Byte, Integer> map = new HashMap<>();
+        Map<Byte, Integer> map = new TreeMap<>();
 
         int entriesCount = stream.readInt();
         int frequencySize = stream.readInt();

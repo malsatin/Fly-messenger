@@ -6,9 +6,13 @@ import com.example.denis.p7.algorithms.compression.LZ77;
 import com.example.denis.p7.algorithms.compression.RLE;
 import com.example.denis.p7.algorithms.exceptions.DecodingException;
 import com.example.denis.p7.algorithms.exceptions.DecompressionException;
+import com.example.denis.p7.algorithms.exceptions.FileTooBigException;
 import com.example.denis.p7.algorithms.helpers.BitStream;
 import com.example.denis.p7.algorithms.helpers.ByteHelper;
 import com.example.denis.p7.algorithms.interfaces.ICompressor;
+
+import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * Example of LZ77 algorithm usage.
@@ -17,13 +21,16 @@ import com.example.denis.p7.algorithms.interfaces.ICompressor;
  */
 public class CompressionTest {
 
-    public static void main(String[] args) throws DecompressionException, DecodingException {
-        String testStr = "hi dfjsdfklj klkl jklsdfjlsdjs fljsdkl jkljf kljsdf klsdjf kldjs klsdjkl";
+    public static void main(String[] args) throws DecompressionException, DecodingException, IOException, FileTooBigException {
+        String testStr = "hi";
+        //String path = "C://photo.jpg";
 
         ICompressor[] algorithms = {new Huffman(), new RLE(), new LZ77()};
 
         byte[] in = ByteHelper.getBytesFromString(testStr);
+        //byte[] in = ByteHelper.readBytesFromFile(path);
 
+        int i = 0;
         for(ICompressor algo : algorithms) {
             String str2;
             System.out.println(algo.getClass().getSimpleName() + ":\n");
@@ -40,10 +47,11 @@ public class CompressionTest {
 
             BitStream t = new HammingCode().encodeBitStream(comp);
             byte[] t2 = t.toByteArray();
-            BitStream t3 = new BitStream(new HammingCode().decodeByteString(t2));
+            BitStream t3 = new HammingCode().decodeByteString(t2);
 
             byte[] res = algo.decompressBitStream(t3).toByteArray();
             str2 = ByteHelper.getStringFromBytes(res);
+            //ByteHelper.writeBytesToFile(res, "F://photo" + i + ".jpg");
 
             /*System.out.println(new BitStream(res).toString());
             System.out.println(Arrays.toString(res) + " " + ByteHelper.getStringFromBytes(res));
@@ -51,7 +59,7 @@ public class CompressionTest {
 
             double ratio = (double)comp.toByteArray().length / in.length;
 
-            System.out.println("Before compression: " + testStr);
+            System.out.println("Before compression: " + Arrays.toString(in));
             System.out.println("After compression:  " + str2);
             System.out.println(testStr.equals(str2) ? "+ Test passed" : "- Test failed!");
             System.out.println("Initial size: " + in.length);
@@ -60,6 +68,7 @@ public class CompressionTest {
 
             System.out.println("Compress ratio: " + String.format("%.2f", ratio));
             System.out.println("\n----------------------------\n");
+            i++;
         }
     }
 

@@ -36,17 +36,18 @@ public class first extends AppCompatActivity implements View.OnClickListener {
         compressionSpinner = (Spinner) findViewById(R.id.compressionSpinner);
 
         codingSpinner.setAdapter(new ArrayAdapter<String>(this,
-                android.R.layout.simple_spinner_dropdown_item, new String[]{getString(R.string.coding1), getString(R.string.coding2), getString(R.string.coding3)}));
+                android.R.layout.simple_spinner_dropdown_item, new String[]{getString(R.string.coding1), getString(R.string.coding2), getString(R.string.coding3),"None"}));
         compressionSpinner.setAdapter(new ArrayAdapter<String>(this,
-                android.R.layout.simple_spinner_dropdown_item, new String[]{getString(R.string.compression1), getString(R.string.compression2), getString(R.string.compression3)}));
+                android.R.layout.simple_spinner_dropdown_item, new String[]{getString(R.string.compression1), getString(R.string.compression2), getString(R.string.compression3),"None"}));
 
     }
 
     @Override
     public void onClick(View v) {
+        Intent intent;
         switch (v.getId()) {
             case R.id.button:
-                Intent intent = new Intent(this, second.class);
+                intent = new Intent(this, second.class);
                 codingType = codingSpinner.getSelectedItemPosition();
                 compressionType = compressionSpinner.getSelectedItemPosition();
                 nickname = nicknameET.getText().toString();

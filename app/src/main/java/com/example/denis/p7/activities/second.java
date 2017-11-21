@@ -42,9 +42,11 @@ import android.widget.Toast;
 
 import com.example.denis.p7.R;
 import com.example.denis.p7.TCPClient;
+import com.example.denis.p7.algorithms.coding.FakeCoding;
 import com.example.denis.p7.algorithms.coding.HammingCode;
 import com.example.denis.p7.algorithms.coding.ParityBit;
 import com.example.denis.p7.algorithms.coding.RepetitionCode;
+import com.example.denis.p7.algorithms.compression.FakeCompression;
 import com.example.denis.p7.algorithms.compression.Huffman;
 import com.example.denis.p7.algorithms.compression.LZ77;
 import com.example.denis.p7.algorithms.compression.RLE;
@@ -816,6 +818,8 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                     return new LZ77();
                 case 2:
                     return new RLE();
+                case 3:
+                    return new FakeCompression();
                 default:
                     throw new IllegalArgumentException("Illegal compression type");
             }
@@ -829,6 +833,8 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                     return new ParityBit();
                 case 2:
                     return new RepetitionCode();
+                case 3:
+                    return new FakeCoding();
                 default:
                     throw new IllegalArgumentException("Illegal coding type");
             }
