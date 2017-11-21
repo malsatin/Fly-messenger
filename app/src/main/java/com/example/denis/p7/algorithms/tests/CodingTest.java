@@ -14,11 +14,9 @@ import java.io.IOException;
 import java.util.Scanner;
 
 public class CodingTest {
-    private static final double BIT_FLIP_PROB = 0.01;
-    private static final String IN_FILE_NAME = "input.txt";
+    private static final double BIT_FLIP_PROB = 0.0001;
 
     public static void main(String[] args) throws IOException, FileTooBigException {
-//        byte[] file = ByteHelper.readBytesFromFile(IN_FILE_NAME);
         Scanner sc = new Scanner(System.in);
         byte[] file = sc.nextLine().getBytes();
         ICoder[] algorithms = {new HammingCode(), new ParityBit(), new RepetitionCode()};
@@ -26,8 +24,6 @@ public class CodingTest {
             BitStream code = alg.encodeByteString(file);
             NoiseHelper.applyNoise(code, BIT_FLIP_PROB);
             try {
-//                ByteHelper.writeBytesToFile(alg.decodeBitStream(code).toByteArray(),
-//                        alg.getClass().getSimpleName() + "_" + IN_FILE_NAME);
                 System.out.println(alg.getClass().getSimpleName() + " `" +
                         ByteHelper.getStringFromBytes(alg.decodeBitStream(code).toByteArray()) + "`\n");
             } catch (DecodingException e) {
