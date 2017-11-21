@@ -534,8 +534,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
 
             outBitStream.addByteArray(codedBitStream.toByteArray());
             byte[] block = outBitStream.toByteArray();
-            //pds.setMessage("Sending on server...");
-            // pds.setMessage("Sending message...");
+
 
             // Send bytes to server
             Log.d(MY_TAG_2,"Send bytes to server");
@@ -756,7 +755,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                         System.arraycopy(bytes[i], 23, exten, 0, 20);
                         path = getApplicationInfo().dataDir + "/f" + k + "." + ByteHelper.getStringFromBytes(exten);
                         try {
-                            ByteHelper.writeBytesToFile(decompressedBitStream.toByteArray(), path);     //TODO replace on decodedStream.toByteArray()
+                            ByteHelper.writeBytesToFile(decompressedBitStream.toByteArray(), path);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
