@@ -75,7 +75,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
     ImageView msgIV, msgFileIV;
     InputMethodManager imm;
     Intent intent;
-    String MY_TAG_2="MY_TAG_2";
+    String MY_TAG_2 = "MY_TAG_2";
     SendMsg sendMsg;
     GetMsgs getMsgs;
     final int REQUEST_CODE_IMAGE = 1, REQUEST_CODE_AUDIO = 2, REQUEST_CODE_TEXT_FILE = 3;
@@ -525,11 +525,11 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
             BitStream codedBitStream;
 
             //compressing message
-            Log.d(MY_TAG_2,"Compressing message");
+            Log.d(MY_TAG_2, "Compressing message");
             compressedBitStream = compressor.compressByteString(bytes[0]);
 
             //coding message
-            Log.d(MY_TAG_2,"Coding message");
+            Log.d(MY_TAG_2, "Coding message");
             codedBitStream = coder.encodeBitStream(compressedBitStream);
 
             outBitStream.addByteArray(codedBitStream.toByteArray());
@@ -537,12 +537,9 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
 
 
             // Send bytes to server
-            Log.d(MY_TAG_2,"Send bytes to server");
-            try {
-                response = client.sendMessage(block);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            Log.d(MY_TAG_2, "Send bytes to server");
+            response = client.sendMessage(block);
+
 
             return response;
         }
@@ -570,7 +567,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                     break;
             }
             pds.dismiss();
-            Log.d(MY_TAG_2,"Message was send ");
+            Log.d(MY_TAG_2, "Message was send ");
         }
     }
 
@@ -592,12 +589,9 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
         protected byte[][] doInBackground(Integer... alreadyHaveMessages) {
             byte[][] result = new byte[0][];
             // Get messages
-            Log.d(MY_TAG_2,"Getting bytes to server");
-            try {
-                result = client.getMessages(alreadyHaveMessages[0]);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            Log.d(MY_TAG_2, "Getting bytes to server");
+            result = client.getMessages(alreadyHaveMessages[0]);
+
             return result;
         }
 
@@ -628,7 +622,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                 BitStream decompressedBitStream = new BitStream();
 
                 //decoding messages
-                Log.d(MY_TAG_2,"Decoding messages");
+                Log.d(MY_TAG_2, "Decoding messages");
                 info += msg.length;
                 try {
                     decodedBitStream = coder.decodeByteString(msg);
@@ -639,7 +633,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                 info += decodedBitStream.size() / 8;
 
                 //decompression messages
-                Log.d(MY_TAG_2,"Decompression messages");
+                Log.d(MY_TAG_2, "Decompression messages");
                 try {
                     decompressedBitStream = compressor.decompressBitStream(decodedBitStream);
                     info += "   " + compressor.getClass().getSimpleName() + "\n";
@@ -651,7 +645,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                 String path;
                 byte[] exten = new byte[20];
                 //Mapping file on screen
-                Log.d(MY_TAG_2,"Mapping file on screen ");
+                Log.d(MY_TAG_2, "Mapping file on screen ");
                 switch (bytes[i][0]) {
                     //simple text msg
                     case (byte) 0:
@@ -708,7 +702,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                         infoTV.setLayoutParams(msgSenderLParamsTV);
 
                         System.arraycopy(bytes[i], 23, exten, 0, 20);
-                        path =  getApplicationInfo().dataDir
+                        path = getApplicationInfo().dataDir
                                 + "/f" + k + "." + ByteHelper.getStringFromBytes(exten);
                         try {
                             ByteHelper.writeBytesToFile(decompressedBitStream.toByteArray(), path);
@@ -773,7 +767,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
             }
 
             pds.dismiss();
-            Log.d(MY_TAG_2,"Messages were got ");
+            Log.d(MY_TAG_2, "Messages were got ");
         }
 
     }

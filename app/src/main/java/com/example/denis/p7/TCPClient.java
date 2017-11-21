@@ -6,7 +6,7 @@ import java.io.InputStream;
 import java.math.BigInteger;
 import java.net.Socket;
 
-class TCPClient {
+public class TCPClient {
     String hostname;
     int port;
 
