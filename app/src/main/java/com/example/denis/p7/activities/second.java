@@ -759,12 +759,7 @@ public class second extends AppCompatActivity implements View.OnClickListener, P
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                        try {
-                            uri = new File(path).toURI().toURL().toExternalForm();
-                        } catch (MalformedURLException e) {
-                            e.printStackTrace();
-                        }
-
+                        uri = Uri.fromFile(new File(path)).toString();
                         msgFileIV.setContentDescription(uri);
                         msgFileIV.setOnClickListener(onClickListenerAV);
                         msgFileTV.setText(msgFileTV.getText() + "Type of file:  " + ByteHelper.getStringFromBytes(exten).replaceAll(" ", "") + "\n\n" + info);
