@@ -2,12 +2,11 @@ package com.example.denis.p7;
 
 import org.apache.commons.io.IOUtils;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.net.Socket;
 
-public class TCPClient {
+class TCPClient {
     String hostname;
     int port;
 
@@ -33,43 +32,43 @@ public class TCPClient {
      * "getMessages().length == 0"), in case of connection error returns
      * null.
      */
-    public byte[][] getMessages(int alreadyHaveMessages) throws IOException {
+    public byte[][] getMessages(int alreadyHaveMessages) {
+        try {
+            // open new socket
+            Socket s = new Socket(hostname, port);
+            // write data to server
+            s.getOutputStream().write(intToByteArray(alreadyHaveMessages));
+            s.shutdownOutput();
+            // receive reply from server
+            InputStream is = s.getInputStream();
+            byte[] dataSize = new byte[4];
+            // see how many bytes has server sent as a reply
 
-        // open new socket
-        Socket s = new Socket(hostname, port);
-        // write data to server
-        s.getOutputStream().write(intToByteArray(alreadyHaveMessages));
-        s.shutdownOutput();
-        // receive reply from server
-        InputStream is = s.getInputStream();
-        byte[] dataSize = new byte[4];
-        // see how many bytes has server sent as a reply
+            is.read(dataSize);
+            // read very first header 4 bytes indicating total message count
+            int dataSizeInt = new BigInteger(dataSize).intValue();
+            // create container for messages
+            byte[][] result = new byte[dataSizeInt][];
+            // fill container by sequentially reading data from server
+            for (int i = 0; i < dataSizeInt; i++) {
+                // read prefix: size of block
+                byte[] messageSize = new byte[4];
+                is.read(messageSize);
+                // read message using size of prefix
+                int length = new BigInteger(messageSize).intValue();
+                byte[] message = new byte[length];
+                IOUtils.read(is, message);
+                // put message into output container
+                result[i] = message;
+            }
 
-        is.read(dataSize);
-        // read very first header 4 bytes indicating total message count
-        int dataSizeInt = new BigInteger(dataSize).intValue();
-        // create container for messages
-        byte[][] result = new byte[dataSizeInt][];
-        // fill container by sequentially reading data from server
-        for (int i = 0; i < dataSizeInt; i++) {
-            // read prefix: size of block
-            byte[] messageSize = new byte[4];
-            is.read(messageSize);
-            // read message using size of prefix
-            int length = new BigInteger(messageSize).intValue();
-            byte[] message = new byte[length];
-            IOUtils.read(is, message);
-            // put message into output container
-            result[i] = message;
+            // close connection
+            s.close();
+            return result;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return null;
         }
-
-        // close connection
-        s.close();
-        return result;
-//        } catch (Exception e) {
-//            System.out.println(e.getMessage());
-//            return null;
-//        }
     }
 
     /**
@@ -80,22 +79,22 @@ public class TCPClient {
      * probably size limit exceeded which is ~800MB), 2:(received damaged
      * message), 3:(connection with server failed)
      */
-    public int sendMessage(byte[] data) throws IOException {
-        // try {
-        // open new socket
-        Socket s = new Socket(hostname, port);
-        // write data to server
-        s.getOutputStream().write(data);
-        s.shutdownOutput();
-        // receive reply from server
-        byte[] error = new byte[4];
-        s.getInputStream().read(error);
-        // close connection and return result
-        s.close();
-        return new BigInteger(error).intValue();
-//        } catch (Exception e) {
-//            return 3;
-//        }
+    public int sendMessage(byte[] data) {
+        try {
+            // open new socket
+            Socket s = new Socket(hostname, port);
+            // write data to server
+            s.getOutputStream().write(data);
+            s.shutdownOutput();
+            // receive reply from server
+            byte[] error = new byte[4];
+            s.getInputStream().read(error);
+            // close connection and return result
+            s.close();
+            return new BigInteger(error).intValue();
+        } catch (Exception e) {
+            return 3;
+        }
     }
 
     /**
